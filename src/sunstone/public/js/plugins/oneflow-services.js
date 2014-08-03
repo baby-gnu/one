@@ -942,10 +942,6 @@ function updateServiceInfo(request,elem){
              <td class="key_td">'+tr("State")+'</td>\
              <td class="value_td">'+ OpenNebula.Service.state(elem_info.TEMPLATE.BODY.state) +'</td>\
            </tr>\
-           <tr>\
-             <td class="key_td">'+tr("Ready Status Gate")+'</td>\
-             <td class="value_td">'+(elem_info.TEMPLATE.BODY.ready_status_gate ? "yes" : "no")+'</td>\
-           </tr>\
          </table>' +
        '</div>\
         <div class="large-6 columns">' + insert_permissions_table('oneflow-services',
@@ -1155,7 +1151,6 @@ function updateServiceInfo(request,elem){
                       <thead>\
                         <tr>\
                           <th></th>\
-                          <th></th>\
                           <th class="check"><input type="checkbox" class="check_all" value=""></input></th>\
                           <th>'+tr("ID")+'</th>\
                           <th>'+tr("Owner")+'</th>\
@@ -1314,9 +1309,9 @@ function updateServiceInfo(request,elem){
                 "bSortClasses": false,
                 "bDeferRender": true,
                 "aoColumnDefs": [
-                    { "bSortable": false, "aTargets": [0,1,8,9,11,13] },
-                    { "sWidth": "35px", "aTargets": [0,1,2] },
-                    { "bVisible": false, "aTargets": [8,9,12]}
+                    { "bSortable": false, "aTargets": [0,1,7,8,10,12] },
+                    { "sWidth": "35px", "aTargets": [0,1] },
+                    { "bVisible": false, "aTargets": [7,8,11]}
                 ]
             });
 
@@ -1333,24 +1328,13 @@ function updateServiceInfo(request,elem){
                         info.push("");
                     }
 
-                    if (elem_info.TEMPLATE.BODY.ready_status_gate) {
-                        if (vm_info.VM.USER_TEMPLATE.READY == "YES") {
-                            info.push('<span data-tooltip class="has-tip" title="'+tr("The VM is ready")+'"><i class="fa fa-check"/></span>');
-
-                        } else {
-                            info.push('<span data-tooltip class="has-tip" title="'+tr("Waiting for the VM to be ready")+'"><i class="fa fa-clock-o"/></span>');
-                        }
-                    } else {
-                        info.push("");
-                    }
-
                     if (vm_info) {
                       vms.push(info.concat(vMachineElementArray(vm_info)));
                     } else {
                         empty_arr = [
                             '<input class="check_item" type="checkbox" id="vm_'+this.deploy_id+'" name="selected_items" value="'+this.deploy_id+'"/>',
                             this.deploy_id,
-                            '', '', '', '', '', '', '', '', '', '', "-" ];
+                            '', '', '', '', '', '', '', '', '', '' ];
 
                         vms.push(info.concat(empty_arr));
                     }
@@ -1382,7 +1366,7 @@ function updateServiceInfo(request,elem){
                     var aData = serviceroleVMsDataTable.fnGetData(this);
                     if (!aData) return true;
 
-                    var id = $(aData[2]).val();
+                    var id = $(aData[1]).val();
                     if (!id) return true;
 
                     showElement("vms-tab", "VM.show", id);

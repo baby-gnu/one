@@ -19,68 +19,68 @@ require 'one_helper/onevm_helper'
 
 class OneVNetHelper < OpenNebulaHelper::OneHelper
     AR = {
-        :name => "address_range",
+        :name => "ar_id",
         :short => "-a ar_id",
         :large => "--address_range ar_id",
         :format => Integer,
         :description => "ID of the address range"
     }
 
-    MAC = {
+    AR_MAC = {
         :name => "mac",
         :short => "-m mac",
-        :large => "--mac mac",
+        :large => "--address_range_mac mac",
         :format => String,
         :description => "First MAC address in : notation"
     }
 
-    IP = {
+    AR_IP = {
         :name => "ip",
         :short => "-i ip",
-        :large => "--ip ip",
+        :large => "--address_range_ip ip",
         :format => String,
         :description => "First IP address in . notation"
     }
 
-    SIZE = {
+    AR_SIZE = {
         :name => "size",
         :short => "-s size",
-        :large => "--size size",
+        :large => "--address_range_size size",
         :format => String,
-        :description => "Number of addresses"
+        :description => "Number of addresses in the range"
     }
 
-    IP6_GLOBAL = {
+    AR_IP6_GLOBAL = {
         :name => "ip6_global",
         :short => "-g ip6_pref",
-        :large => "--ip6_global ip6_pref",
+        :large => "--address_range_ip6g ip6_pref",
         :format => String,
         :description => "IP6 global prefix"
     }
 
-    IP6_ULA = {
+    AR_IP6_ULA = {
         :name => "ip6_ula",
         :short => "-u ip6_pref",
-        :large => "--ip6_ula ip6_pref",
+        :large => "--address_range_ip6u ip6_pref",
         :format => String,
         :description => "IP6 ula prefix"
     }
 
-    NAME = {
-        :name => "name",
+    R_NAME = {
+        :name => "rname",
         :short => "-n reservation name",
         :large => "--name reservation name",
         :format => String,
         :description => "Name of the address reservation"
     }
 
-#    R_SIZE = {
-#        :name => "rsize",
-#        :short => "-s reservation size",
-#        :large => "--size reservation size",
-#        :format => String,
-#        :description => "Number of addresses to reserve"
-#    }
+    R_SIZE = {
+        :name => "rsize",
+        :short => "-s reservation size",
+        :large => "--size reservation size",
+        :format => String,
+        :description => "Number of addresses to reserve"
+    }
 
     def self.rname
         "VNET"
@@ -99,7 +99,7 @@ class OneVNetHelper < OpenNebulaHelper::OneHelper
             end
 
             column :USER, "Username of the Virtual Network owner", :left,
-                    :size=>15 do |d|
+                    :size=>12 do |d|
                 helper.user_name(d, options)
             end
 
@@ -109,12 +109,16 @@ class OneVNetHelper < OpenNebulaHelper::OneHelper
             end
 
             column :NAME, "Name of the Virtual Network", :left,
-                    :size=>19 do |d|
+                    :size=>15 do |d|
                 d["NAME"]
             end
 
             column :CLUSTER, "Name of the Cluster", :left, :size=>10 do |d|
                 OpenNebulaHelper.cluster_str(d["CLUSTER"])
+            end
+
+            column :SIZE, "Size of the Virtual Network", :size=>5 do |d|
+                d["SIZE"]
             end
 
             column :BRIDGE, "Bridge associated to the Virtual Network", :left,
@@ -127,7 +131,7 @@ class OneVNetHelper < OpenNebulaHelper::OneHelper
                 d["USED_LEASES"]
             end
 
-            default :ID, :USER, :GROUP, :NAME, :CLUSTER, :BRIDGE, :LEASES
+            default :ID, :USER, :GROUP, :NAME, :CLUSTER, :TYPE, :BRIDGE, :LEASES
         end
 
         table

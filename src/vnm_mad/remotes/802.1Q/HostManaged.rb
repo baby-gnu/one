@@ -82,10 +82,7 @@ class OpenNebulaHM < OpenNebulaNetwork
     end
 
     def create_dev_vlan(dev, vlan)
-        cmd = "#{COMMANDS[:ip]} link add link #{dev}"
-        cmd << " name #{dev}.#{vlan} type vlan id #{vlan}"
-
-        OpenNebula.exec_and_log(cmd)
+        OpenNebula.exec_and_log("#{COMMANDS[:vconfig]} add #{dev} #{vlan}")
     end
 
     def attached_bridge_dev?(bridge, dev, vlan=nil)

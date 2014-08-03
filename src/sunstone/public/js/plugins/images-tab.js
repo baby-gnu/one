@@ -172,10 +172,10 @@ var create_image_tmpl ='<div class="row create_image_header">\
                       </div>\
                       <div class="row">\
                         <div class="large-12 columns">\
-                          <button class="add_remove_button add_button secondary button small radius" id="add_custom_var_image_button" type="button" value="add_custom_image_var">\
+                          <button class="add_remove_button add_button secondary button small radius" id="add_custom_var_image_button" value="add_custom_image_var">\
                            '+tr("Add")+'\
                           </button>\
-                          <button class="add_remove_button secondary button small radius" id="remove_custom_var_image_button" type="button" value="remove_custom_image_var">\
+                          <button class="add_remove_button secondary button small radius" id="remove_custom_var_image_button" value="remove_custom_image_var">\
                            '+tr("Remove selected")+'\
                           </button>\
                         </div>\
@@ -195,7 +195,7 @@ var create_image_tmpl ='<div class="row create_image_header">\
               </div>\
           </div>\
             <div class="form_buttons">\
-              <button class="button success radius right" id="create_image_submit" type="submit" value="image/create">'+tr("Create")+'</button>\
+              <button class="button success radius right" id="create_image_submit" type="button" value="image/create">'+tr("Create")+'</button>\
               <button id="wizard_image_reset_button"  class="button secondary radius" type="reset" value="reset">'+tr("Reset")+'</button>\
             </div>\
         </div>\
@@ -891,6 +891,7 @@ function initialize_create_image_dialog(dialog) {
 
     $('#path_image',dialog).click();
 
+
     $('#add_custom_var_image_button', dialog).click(
         function(){
             var name = $('#custom_var_image_name',dialog).val();
@@ -942,7 +943,7 @@ function initialize_create_image_dialog(dialog) {
                 file: fileName
             });
 
-            $('#upload_progress_bars').append('<div id="'+fileName+'progressBar" class="row" style="margin-bottom:10px">\
+            $('#upload_progress_bars').append('<div id="'+id+'progressBar" class="row" style="margin-bottom:10px">\
               <div class="large-2 columns dataTables_info">\
                 '+tr("Uploading...")+'\
               </div>\
@@ -950,12 +951,12 @@ function initialize_create_image_dialog(dialog) {
                 <div id="upload_progress_container" class="progress nine radius" style="height:25px !important">\
                   <span class="meter" style="width:0%"></span>\
                 </div>\
-                <div class="progress-text" style="margin-left:15px">'+fileName+'</div>\
+                <div class="progress-text" style="margin-left:15px">'+id+' '+fileName+'</div>\
               </div>\
             </div>');
         },
         onProgress: function(id, fileName, loaded, total){
-            $('span.meter', $('div[id="'+fileName+'progressBar"]')).css('width', Math.floor(loaded*100/total)+'%')
+            $('span.meter', $('#'+id+'progressBar')).css('width', Math.floor(loaded*100/total)+'%')
         },
         onComplete: function(id, fileName, responseJSON){
 
@@ -963,11 +964,11 @@ function initialize_create_image_dialog(dialog) {
                 uploader._handler._xhrs[id].status == 500) {
 
                 onError({}, JSON.parse(uploader._handler._xhrs[id].response) )
-                $('div[id="'+fileName+'progressBar"]').remove();
+                $('#'+id+'progressBar').remove();
             } else {
                 notifyMessage("Image uploaded correctly");
-                $('div[id="'+fileName+'progressBar"]').remove();
-                Sunstone.runAction("Image.refresh");
+                $('#'+id+'progressBar').remove();
+                Sunstone.runAction("Image.list");
             }
 
             return false;
@@ -981,7 +982,7 @@ function initialize_create_image_dialog(dialog) {
         file_input = input;  return false;
     };
 
-    $('#create_image',dialog).submit(function(){
+    $('#create_image_submit',dialog).click(function(){
         $create_image_dialog = dialog;
 
         var exit = false;
@@ -1163,7 +1164,6 @@ function setupImageCloneDialog(){
         <dd><a href="#image_clone_advanced"> '+tr("Advanced options")+'</a></dd>\
       </dl>\
       <div id="image_clone_advanced" class="row collapse content">\
-        <br>\
         <div class="large-12 columns">\
           <span>'+tr("You can select a different target datastore")+'</span>\
           <br/>\

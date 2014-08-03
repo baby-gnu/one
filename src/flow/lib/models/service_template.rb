@@ -24,8 +24,7 @@ module OpenNebula
             :properties => {
                 'name' => {
                     :type => :string,
-                    :required => true,
-                    :regex => /^\w+$/
+                    :required => true
                 },
                 'cardinality' => {
                     :type => :integer,
@@ -172,7 +171,7 @@ module OpenNebula
                     },
                     :required => false
                 },
-                'ready_status_gate' => {
+                'running_status_gate' => {
                     :type => :boolean,
                     :required => false
                 }

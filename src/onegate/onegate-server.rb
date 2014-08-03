@@ -51,6 +51,7 @@ require 'opennebula'
 require 'opennebula/oneflow_client'
 
 USER_AGENT = 'GATE'
+RESOURCE_PATH = "/service"
 
 include OpenNebula
 
@@ -100,16 +101,6 @@ helpers do
         end
     end
 
-    def flow_client(client)
-        split_array = client.one_auth.split(':')
-
-        Service::Client.new(
-                :url        => settings.config[:oneflow_server],
-                :user_agent => USER_AGENT,
-                :username   => split_array.shift,
-                :password   => split_array.join(':'))
-    end
-
     def get_vm(vm_id, client)
         vm = VirtualMachine.new_with_id(vm_id, client)
         rc = vm.info
@@ -122,17 +113,21 @@ helpers do
         vm
     end
 
-    def get_service(service_id, client)
+    def get_service(vm)
+        vm_id = vm["ID"]
+
+        service_id = vm['USER_TEMPLATE/SERVICE_ID']
+
         if service_id.nil? || !service_id.match(/^\d+$/)
-            error_msg = "Empty or invalid SERVICE_ID"
+            error_msg = "VMID:#{vm_id} Empty or invalid SERVICE_ID"
             logger.error {error_msg}
             halt 400, error_msg
         end
 
-        service = flow_client(client).get("/service/#{service_id}")
+        service = $flow_client.get("#{RESOURCE_PATH}/#{service_id}")
 
         if CloudClient::is_error?(service)
-            error_msg = "Service #{service_id} not found"
+            error_msg = "VMID:#{vm_id} Service #{service_id} not found"
             logger.error {error_msg}
             halt 404, error_msg
         end
@@ -147,10 +142,8 @@ USER_TEMPLATE_INVALID_KEYS = %w(SCHED_MESSAGE)
 def build_vm_hash(vm_hash)
     nics = []
 
-    if vm_hash["TEMPLATE"]["NIC"]
-        [vm_hash["TEMPLATE"]["NIC"]].flatten.each do |nic|
-            nics << nic.select{|k,v| NIC_VALID_KEYS.include?(k)}
-        end
+    vm_hash["TEMPLATE"]["NIC"].each do |nic|
+        nics << nic.select{|k,v| NIC_VALID_KEYS.include?(k)}
     end
 
     {
@@ -269,8 +262,7 @@ get '/service' do
 
     vm = get_vm(vm_id, client)
 
-    service_id = vm['USER_TEMPLATE/SERVICE_ID']
-    service = get_service(service_id, client)
+    service = get_service(vm)
 
     service_hash = JSON.parse(service)
 
@@ -294,31 +286,4 @@ get '/service' do
     end
 
     [200, response.to_json]
-end
-
-#############
-# DEPRECATED
-#############
-
-put '/vm/:id' do
-    client = authenticate(request.env, params)
-
-    halt 401, "Not authorized" if client.nil?
-
-    vm = VirtualMachine.new_with_id(params[:id], client)
-    rc = vm.info
-
-    if OpenNebula.is_error?(rc)
-        logger.error {"VMID:#{params[:id]} vm.info error: #{rc.message}"}
-        halt 404, rc.message
-    end
-
-    rc = vm.update(request.body.read, true)
-
-    if OpenNebula.is_error?(rc)
-        logger.error {"VMID:#{params[:id]} vm.update error: #{rc.message}"}
-        halt 500, rc.message
-    end
-
-    [200, ""]
 end

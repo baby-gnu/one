@@ -50,6 +50,7 @@ COMMANDS = {
   :iptables => "sudo iptables",
   :brctl    => "sudo brctl",
   :ip       => "sudo ip",
+  :vconfig  => "sudo vconfig",
   :virsh    => "virsh -c qemu:///system",
   :xm       => get_xen_command,
   :ovs_vsctl=> "sudo ovs-vsctl",

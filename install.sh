@@ -1464,7 +1464,8 @@ SUNSTONE_ETC_FILES="src/sunstone/etc/sunstone-server.conf \
 SUNSTONE_ETC_VIEW_FILES="src/sunstone/etc/sunstone-views/admin.yaml \
                     src/sunstone/etc/sunstone-views/user.yaml \
                     src/sunstone/etc/sunstone-views/cloud.yaml \
-                    src/sunstone/etc/sunstone-views/vdcadmin.yaml"
+                    src/sunstone/etc/sunstone-views/vdcadmin46.yaml \
+                     src/sunstone/etc/sunstone-views/vdcadmin.yaml"
 
 SUNSTONE_MODELS_FILES="src/sunstone/models/OpenNebulaJSON.rb \
                        src/sunstone/models/SunstoneServer.rb \
@@ -1518,8 +1519,7 @@ SUNSTONE_PUBLIC_JS_PLUGINS_FILES="\
                         src/sunstone/public/js/plugins/oneflow-dashboard.js \
                         src/sunstone/public/js/plugins/oneflow-services.js \
                         src/sunstone/public/js/plugins/oneflow-templates.js \
-                        src/sunstone/public/js/plugins/support-tab.js \
-                        src/sunstone/public/js/plugins/zones-tab.js"
+                        src/sunstone/public/js/plugins/support-tab.js"
 
 SUNSTONE_ROUTES_FILES="src/sunstone/routes/oneflow.rb"
 

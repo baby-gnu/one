@@ -31,17 +31,14 @@ public class VirtualNetwork extends PoolElement{
     private static final String ALLOCATE        = METHOD_PREFIX + "allocate";
     private static final String INFO            = METHOD_PREFIX + "info";
     private static final String DELETE          = METHOD_PREFIX + "delete";
-    private static final String ADDAR           = METHOD_PREFIX + "add_ar";
-    private static final String RMAR            = METHOD_PREFIX + "rm_ar";
-    private static final String UPDATEAR        = METHOD_PREFIX + "update_ar";
+    private static final String ADDLEASES       = METHOD_PREFIX + "addleases";
+    private static final String RMLEASES        = METHOD_PREFIX + "rmleases";
     private static final String CHOWN           = METHOD_PREFIX + "chown";
     private static final String CHMOD           = METHOD_PREFIX + "chmod";
     private static final String UPDATE          = METHOD_PREFIX + "update";
     private static final String HOLD            = METHOD_PREFIX + "hold";
     private static final String RELEASE         = METHOD_PREFIX + "release";
     private static final String RENAME          = METHOD_PREFIX + "rename";
-    private static final String RESERVE         = METHOD_PREFIX + "reserve";
-    private static final String FREEAR          = METHOD_PREFIX + "free_ar";
 
     /**
      * Creates a new virtual network representation.
@@ -145,53 +142,29 @@ public class VirtualNetwork extends PoolElement{
     }
 
     /**
-     * Adds an Address Range to the VirtualNetwork
+     * Adds a lease to the VirtualNetwork
      *
      * @param client XML-RPC Client.
      * @param id The virtual network id (nid) of the target network.
-     * @param template AR to add, example:
-     *      AR = [
-     *          TYPE = IP4,
-     *          IP = 192.168.0.5,
-     *          SIZE = 10 ]
-     *
+     * @param template IP to add, e.g. "LEASES = [ IP = 192.168.0.5 ]"
      * @return A encapsulated response.
      */
-    public static OneResponse addAr(Client client, int id, String template)
+    public static OneResponse addLeases(Client client, int id, String template)
     {
-        return client.call(ADDAR, id, template);
+        return client.call(ADDLEASES, id, template);
     }
 
     /**
-     * Removes an Address Range from the VirtualNetwork
+     * Removes a lease from the VirtualNetwork
      *
      * @param client XML-RPC Client.
      * @param id The virtual network id (nid) of the target network.
-     * @param arId Id of the Address Range to remove
+     * @param template IP to remove, e.g. "LEASES = [ IP = 192.168.0.5 ]"
      * @return A encapsulated response.
      */
-    public static OneResponse rmAr(Client client, int id, int arId)
+    public static OneResponse rmLeases(Client client, int id, String template)
     {
-        return client.call(RMAR, id, arId);
-    }
-
-    /**
-     * Upates an Address Range from the VirtualNetwork
-     *
-     * @param client XML-RPC Client.
-     * @param id The virtual network id (nid) of the target network.
-     * @param template AR to update, example:
-     *      AR = [
-     *          AR_ID = 3,
-     *          TYPE  = IP4,
-     *          IP    = 192.168.0.5,
-     *          SIZE  = 10 ]
-     *
-     * @return A encapsulated response.
-     */
-    public static OneResponse updateAr(Client client, int id, String template)
-    {
-        return client.call(UPDATEAR, id, template);
+        return client.call(RMLEASES, id, template);
     }
 
     /**
@@ -199,12 +172,7 @@ public class VirtualNetwork extends PoolElement{
      *
      * @param client XML-RPC Client.
      * @param id The virtual network id (nid) of the target network.
-     * @param template Address to hold, examples:
-     *<pre>
-     *      LEASES = [ IP = 192.168.0.5 ]
-     *      LEASES = [ MAC = 02:00:0a:00:00:96 ]
-     *      LEASES = [ IP = 192.168.0.5, AR_ID = 3 ]
-     *</pre>
+     * @param template IP to hold, e.g. "LEASES = [ IP = 192.168.0.5 ]"
      * @return A encapsulated response.
      */
     public static OneResponse hold(Client client, int id, String template)
@@ -217,12 +185,7 @@ public class VirtualNetwork extends PoolElement{
      *
      * @param client XML-RPC Client.
      * @param id The virtual network id (nid) of the target network.
-     * @param template Address to release, examples:
-     *<pre>
-     *      LEASES = [ IP = 192.168.0.5 ]
-     *      LEASES = [ MAC = 02:00:0a:00:00:96 ]
-     *      LEASES = [ IP = 192.168.0.5, AR_ID = 3 ]
-     *</pre>
+     * @param template IP to release, e.g. "LEASES = [ IP = 192.168.0.5 ]"
      * @return A encapsulated response.
      */
     public static OneResponse release(Client client, int id, String template)
@@ -325,43 +288,6 @@ public class VirtualNetwork extends PoolElement{
         return client.call(RENAME, id, name);
     }
 
-    /**
-     * Reserve a set of addresses from this virtual network
-     *
-     * @param client XML-RPC Client.
-     * @param id The virtual network id (nid) of the target network.
-     * @param template of the reservation. Examples:
-     *<pre>
-     *      SIZE  = 10
-     *
-     *      SIZE  = 10
-     *      AR_ID = 3
-     *      NAME  = "new_network"
-     *
-     *      SIZE  = 10
-     *      IP    = 192.168.10.50
-     *      NETWORK_ID = 9
-     *</pre>
-     * @return A encapsulated response.
-     */
-    public static OneResponse reserve(Client client, int id, String template)
-    {
-        return client.call(RESERVE, id, template);
-    }
-
-    /**
-     * Removes an Address Range from the VirtualNetwork
-     *
-     * @param client XML-RPC Client.
-     * @param id The virtual network id (nid) of the target network.
-     * @param arId Id of the Address Range to remove
-     * @return A encapsulated response.
-     */
-    public static OneResponse free(Client client, int id, int arId)
-    {
-        return client.call(FREEAR, id, arId);
-    }
-
     // =================================
     // Instanced object XML-RPC methods
     // =================================
@@ -421,114 +347,72 @@ public class VirtualNetwork extends PoolElement{
     }
 
     /**
-     * Adds an Address Range to the VirtualNetwork
+     * Adds a lease to the VirtualNetwork
      *
-     * @param template AR to add, example:
-     *<pre>
-     *      AR = [
-     *          TYPE = IP4,
-     *          IP = 192.168.0.5,
-     *          SIZE = 10 ]
-     *</pre>
-     *
+     * @param ip IP to add, e.g. "192.168.0.5"
      * @return A encapsulated response.
      */
-    public OneResponse addAr(String template)
+    public OneResponse addLeases(String ip)
     {
-        return addAr(client, id, template);
+        return addLeases(ip, null);
     }
 
     /**
-     * Removes an Address Range from the VirtualNetwork
+     * Adds a lease to the VirtualNetwork
      *
-     * @param arId Id of the Address Range to remove
+     * @param ip IP to add, e.g. "192.168.0.5"
+     * @param mac MAC address associated to the IP. Can be null, in which case
+     * OpenNebula will generate it using the following rule:
+     * MAC = MAC_PREFFIX:IP
      * @return A encapsulated response.
      */
-    public OneResponse rmAr(int arId)
+    public OneResponse addLeases(String ip, String mac)
     {
-        return rmAr(client, id, arId);
+        String lease_template = "LEASES = [ IP = " + ip;
+
+        if( mac != null )
+        {
+            lease_template += ", MAC = " + mac;
+        }
+
+        lease_template += " ]";
+
+        return addLeases(client, id, lease_template);
     }
 
     /**
-     * Upates an Address Range from the VirtualNetwork
+     * Removes a lease from the VirtualNetwork
      *
-     * @param template AR to update, example:
-     *<pre>
-     *      AR = [
-     *          AR_ID = 3,
-     *          TYPE  = IP4,
-     *          IP    = 192.168.0.5,
-     *          SIZE  = 10 ]
-     *</pre>
-     *
+     * @param ip IP to remove, e.g. "192.168.0.5"
      * @return A encapsulated response.
      */
-    public OneResponse updateAr(String template)
+    public OneResponse rmLeases(String ip)
     {
-        return updateAr(client, id, template);
+        String lease_template = "LEASES = [ IP = " + ip + " ]";
+        return rmLeases(client, id, lease_template);
     }
 
     /**
      * Holds a VirtualNetwork lease, marking it as used
      *
-     * @param ip IP or MAC to hold, e.g. "192.168.0.5", "02:00:0a:00:00:96"
+     * @param ip IP to hold, e.g. "192.168.0.5"
      * @return A encapsulated response.
      */
     public OneResponse hold(String ip)
     {
-        String addr_name = ip.contains(":") ? "MAC" : "IP";
-
-        String lease_template = "LEASES = [ "+addr_name+" = "+ip+"]";
-
-        return hold(client, id, lease_template);
-    }
-
-    /**
-     * Holds a VirtualNetwork lease, marking it as used
-     *
-     * @param ip IP or MAC to hold, e.g. "192.168.0.5", "02:00:0a:00:00:96"
-     * @param arId Id of the Address Range to hold the lease from
-     * @return A encapsulated response.
-     */
-    public OneResponse hold(String ip, int arId)
-    {
-        String addr_name = ip.contains(":") ? "MAC" : "IP";
-
-        String lease_template =
-            "LEASES = [ "+addr_name+" = "+ip+", AR_ID = "+arId+" ]";
-
+        String lease_template = "LEASES = [ IP = " + ip + " ]";
         return hold(client, id, lease_template);
     }
 
     /**
      * Releases a VirtualNetwork lease on hold
      *
-     * @param ip IP or MAC to hold, e.g. "192.168.0.5", "02:00:0a:00:00:96"
+     * @param ip IP to release, e.g. "192.168.0.5"
      * @return A encapsulated response.
      */
     public OneResponse release(String ip)
     {
-        String addr_name = ip.contains(":") ? "MAC" : "IP";
-
-        String lease_template = "LEASES = [ "+addr_name+" = "+ip+"]";
-
-        return release(client, id, lease_template);
-    }
-
-    /**
-     * Releases a VirtualNetwork lease on hold
-     *
-     * @param ip IP or MAC to hold, e.g. "192.168.0.5", "02:00:0a:00:00:96"
-     * @param arId Id of the Address Range to release the lease from
-     * @return A encapsulated response.
-     */
-    public OneResponse release(String ip, int arId)
-    {
-        String addr_name = ip.contains(":") ? "MAC" : "IP";
-
-        String lease_template =
-            "LEASES = [ "+addr_name+" = "+ip+", AR_ID = "+arId+" ]";
-
+        String lease_template = "LEASES = [ IP = " + ip + " ]";
         return release(client, id, lease_template);
     }
 
@@ -644,39 +528,6 @@ public class VirtualNetwork extends PoolElement{
     public OneResponse rename(String name)
     {
         return rename(client, id, name);
-    }
-
-    /**
-     * Reserve a set of addresses from this virtual network
-     *
-     * @param template of the reservation. Examples:
-     *<pre>
-     *      SIZE  = 10
-     *
-     *      SIZE  = 10
-     *      AR_ID = 3
-     *      NAME  = "new_network"
-     *
-     *      SIZE  = 10
-     *      IP    = 192.168.10.50
-     *      NETWORK_ID = 9
-     *</pre>
-     * @return A encapsulated response.
-     */
-    public OneResponse reserve(String template)
-    {
-        return reserve(client, id, template);
-    }
-
-    /**
-     * Removes an Address Range from the VirtualNetwork
-     *
-     * @param arId Id of the Address Range to remove
-     * @return A encapsulated response.
-     */
-    public OneResponse free(int arId)
-    {
-        return free(client, id, arId);
     }
 
     // =================================

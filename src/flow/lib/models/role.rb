@@ -207,8 +207,8 @@ module OpenNebula
 
                     running = vm_state == '3' && lcm_state >= '3'
 
-                    if running && @service.ready_status_gate
-                        running_status = node['vm_info']['VM']['USER_TEMPLATE']['READY'] || ""
+                    if running && @service.running_status_gate
+                        running_status = node['vm_info']['VM']['USER_TEMPLATE']['RUNNING'] || ""
                         running = running_status.upcase == "YES"
                     end
 
@@ -247,11 +247,9 @@ module OpenNebula
 
             @body['last_vmname'] ||= 0
 
-            if @body['vm_template_contents']
-                extra_template = @body['vm_template_contents'].dup
-            else
-                extra_template = ""
-            end
+            extra_template = @body['vm_template_contents']
+
+            extra_template = "" if extra_template.nil?
 
             extra_template <<
                 "\nSERVICE_ID = #{@service.id()}" <<

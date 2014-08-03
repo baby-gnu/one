@@ -80,15 +80,14 @@ var create_vn_tmpl =
                   <option value="vmware">'+tr("VMware")+'</option>\
                 </select>\
               </div>\
-              <div class="large-12 columns">\
-                <div class="network_mode_description" value="default">'+tr("Default: dummy driver that doesn’t perform any network operation. Firewalling rules are also ignored.")+'</div>\
-                <div class="network_mode_description" value="802.1Q">'+tr("802.1Q: restrict network access through VLAN tagging, which also requires support from the hardware switches.")+'</div>\
-                <div class="network_mode_description" value="ebtables">'+tr("ebtables: restrict network access through Ebtables rules. No special hardware configuration required.")+'</div>\
-                <div class="network_mode_description" value="openvswitch">'+tr("Open vSwitch: restrict network access with Open vSwitch Virtual Switch.")+'</div>\
-                <div class="network_mode_description" value="vmware">'+tr("VMware: uses the VMware networking infrastructure to provide an isolated and 802.1Q compatible network for VMs launched with the VMware hypervisor.")+'</div>\
+              <div class="large-6 columns">\
+                <div class="network_mode_description text-justify" value="default">'+tr("Default: dummy driver that doesn’t perform any network operation. Firewalling rules are also ignored.")+'</div>\
+                <div class="network_mode_description text-justify" value="802.1Q">'+tr("802.1Q: restrict network access through VLAN tagging, which also requires support from the hardware switches.")+'</div>\
+                <div class="network_mode_description text-justify" value="ebtables">'+tr("ebtables: restrict network access through Ebtables rules. No special hardware configuration required.")+'</div>\
+                <div class="network_mode_description text-justify" value="openvswitch">'+tr("Open vSwitch: restrict network access with Open vSwitch Virtual Switch.")+'</div>\
+                <div class="network_mode_description text-justify" value="vmware">'+tr("VMware: uses the VMware networking infrastructure to provide an isolated and 802.1Q compatible network for VMs launched with the VMware hypervisor.")+'</div>\
               </div>\
             </div>\
-            <br>\
             <div class="row">\
               <div class="large-6 columns">\
                 <div class="row">\
@@ -480,47 +479,19 @@ var vnet_actions = {
             var vnet = params.data.id;
 
             if (cluster == -1){
-                OpenNebula.Network.show({
-                    data : {
-                        id: vnet
-                    },
-                    success: function (request, vn){
-                        var vn_info = vn.VNET;
-
-                        var current_cluster = vn_info.CLUSTER_ID;
-
-                        if(current_cluster != -1){
-                            OpenNebula.Cluster.delvnet({
-                                data: {
-                                    id: current_cluster,
-                                    extra_param: vnet
-                                },
-                                success: function(){
-                                    OpenNebula.Helper.clear_cache("VNET");
-                                    Sunstone.runAction('Network.show',vnet);
-                                },
-                                error: onError
-                            });
-                        } else {
-                            OpenNebula.Helper.clear_cache("VNET");
-                            Sunstone.runAction('Network.show',vnet);
-                        }
-                    },
-                    error: onError
-                });
-            } else {
-                OpenNebula.Cluster.addvnet({
-                    data: {
-                        id: cluster,
-                        extra_param: vnet
-                    },
-                    success: function(){
-                        OpenNebula.Helper.clear_cache("VNET");
-                        Sunstone.runAction('Network.show',vnet);
-                    },
-                    error: onError
-                });
+                //get cluster name
+                var current_cluster = getValue(vnet,1,5,dataTable_vNetworks);
+                //get cluster id
+                current_cluster = getValue(current_cluster,
+                                           2,1,dataTable_clusters);
+                if (!current_cluster) return;
+                Sunstone.runAction("Cluster.delvnet",current_cluster,vnet)
             }
+            else
+                Sunstone.runAction("Cluster.addvnet",cluster,vnet);
+        },
+        callback: function(request) {
+            Sunstone.runAction('Network.show',request.request.data[0]);
         },
         elements: vnElements
     }
@@ -988,7 +959,7 @@ function ar_list_tab_content(vn_info){
       </div>';
     }
 
-    html +=
+    html += 
       '</div>\
     </form>';
 
@@ -1129,7 +1100,7 @@ function printLeases(vn_info){
         for (var j=0; j<leases.length; j++){
             lease = leases[j];
 
-            html+='<tr ip="'+lease.IP+'" mac="'+lease.MAC+'">';
+            html+='<tr ip="'+lease.IP+'">';
 
             html += '<td class="key_td">';
 
@@ -1322,15 +1293,13 @@ function setupCreateVNetDialog() {
     });
 
     setupTips(dialog);
-
-    dialog.foundation();
-
-    // Add first AR
-    $("#vnet_wizard_ar_btn", dialog).trigger("click");
 }
 
 function popUpCreateVnetDialog() {
     $create_vn_dialog.foundation().foundation('reveal', 'open');
+
+    // Add first AR
+    $("#vnet_wizard_ar_btn", $create_vn_dialog).trigger("click");
 
     $("input#name",$create_vn_dialog).focus();
 }
@@ -1505,7 +1474,7 @@ function fill_ar_tab_data(ar_json, ar_section){
                 var checked = (field.val() == ar_json[field_name]);
 
                 field.prop("checked", checked );
-
+                
                 if(checked){
                     field.change();
                 }
@@ -1565,13 +1534,8 @@ function setupLeasesOps(){
 
   if (Config.isTabActionEnabled("vnets-tab", "Network.release_lease")) {
     $('a.release_lease').live("click",function(){
-        var id = $(this).parents('form').attr('vnid');
-
         var lease = $(this).parents('tr').attr('ip');
-        if (lease == "undefined"){
-            lease = $(this).parents('tr').attr('mac');
-        }
-
+        var id = $(this).parents('form').attr('vnid');
         var obj = { ip: lease};
         Sunstone.runAction('Network.release',id,obj);
         //Set spinner
@@ -1788,26 +1752,26 @@ function setupReserveDialog(){
         <div class="row">\
           <div class="large-12 columns">\
             <h3 class="subheader" id="">\
-              '+tr("Reservation from Virtual Network")+' <span id="vnet_id"/>\
+              '+tr("Virtual Network")+' <span id="vnet_id"/>\
             </h3>\
           </div>\
         </div>\
         <div class="row">\
           <div class="large-6 columns">\
-            <label for="reserve_size">'+tr("Number of addresses")+':</label>\
+            <label for="reserve_size">'+tr("Size")+':</label>\
             <input wizard_field="size" type="text" id="reserve_size"/>\
           </div>\
         </div>\
         <div class="row">\
           <div class="large-12 columns">\
-            <input type="radio" name="reserve_target" id="reserve_new" value="NEW"/><label for="reserve_new">'+tr("Add to a new Virtual Network")+'</label>\
-            <input type="radio" name="reserve_target" id="reserve_add" value="ADD"/><label for="reserve_add">'+tr("Add to an existing Reservation")+'</label>\
+            <input type="radio" name="reserve_target" id="reserve_new" value="NEW"/><label for="reserve_new">'+tr("Create a new Virtual Network")+'</label>\
+            <input type="radio" name="reserve_target" id="reserve_add" value="ADD"/><label for="reserve_add">'+tr("Add to a existing Virtual Network")+'</label>\
           </div>\
         </div>\
         <div id="reserve_new_body">\
           <div class="row">\
             <div class="large-6 columns">\
-              <label for="reserve_name">'+tr("Virtual Network Name")+':</label>\
+              <label for="reserve_name">'+tr("Name")+':</label>\
               <input wizard_field="name" type="text" id="reserve_name"/>\
             </div>\
           </div>\
@@ -1815,7 +1779,6 @@ function setupReserveDialog(){
         <div id="reserve_add_body">\
           '+generateVNetTableSelect("reserve")+'\
         </div>\
-        <br>\
         <div class="row">\
           <div class="large-12 columns">\
             <dl class="tabs wizard_tabs" data-tab>\
@@ -1827,15 +1790,9 @@ function setupReserveDialog(){
           <div class="content" id="advanced_reserve">\
             <div class="row">\
               <div class="large-12 columns">\
-                <p>'+tr("You can select the addresses from an specific Address Range")+'</p>\
-              </div>\
-            </div>\
-            <div class="row">\
-              <div class="large-12 columns">\
                 '+generateARTableSelect("ar_reserve")+'\
               </div>\
             </div>\
-            <br>\
             <div class="row">\
               <div class="large-6 columns">\
                 <label for="reserve_addr">'+tr("First address")+':</label>\

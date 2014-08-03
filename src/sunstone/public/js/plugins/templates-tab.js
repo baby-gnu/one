@@ -28,7 +28,7 @@ var create_template_tmpl = '\
 '</div>'+
   '<div class="tabs-content">' +
     '<div class="content active" id="easy">' +
-      '<form data-abide="ajax" id="create_template_form" class="custom creation">'+
+      '<form class="custom creation">'+
         '<div class="">'+
           '<dl id="template_create_tabs" class="tabs right-info-tabs text-center" data-tab>'+
           wizard_tab_dd()+
@@ -40,8 +40,8 @@ var create_template_tmpl = '\
         '<br>'+
         '<div class="row">' +
           '<div class="large-12 columns">' +
-            '<button type="submit" class="success button radius" id="create_template_form_easy" value="OpenNebula.Template.create" style="float: right">'+tr("Create")+'</button>'+
-            '<button type="submit" class="button hidden radius" id="template_template_update_button" value="Template.update_template" style="float: right">'+tr("Update")+'</button>'+
+            '<button class="success button radius" id="create_template_form_easy" value="OpenNebula.Template.create" style="float: right">'+tr("Create")+'</button>'+
+            '<button class="button hidden radius" id="template_template_update_button" value="Template.update_template" style="float: right">'+tr("Update")+'</button>'+
             '<button class="button secondary radius" id="template_template_reset_button" value="reset" type="reset">'+tr("Reset")+'</button>'+
           '</div>' +
         '</div>' +
@@ -72,7 +72,7 @@ var instantiate_vm_template_tmpl ='\
 <div class="row">\
   <h3 id="create_vnet_header" class="subheader">'+tr("Instantiate VM Template")+'</h3>\
 </div>\
-<form data-abide="ajax" id="instantiate_vm_template_form" action="">\
+<form id="instantiate_vm_template_form" action="">\
   <div class="row">\
     <div class="large-12 columns">\
         <label for="vm_name">'+tr("VM Name")+
@@ -466,11 +466,6 @@ function updateTemplatesView(request, templates_list){
     updateView(template_list_array,dataTable_templates);
 }
 
-/**************************************************************************
-    CAPACITY TAB
-
-**************************************************************************/
-
 function generate_capacity_tab_content() {
     var html = '<div class="row vm_param">'+
         '<div class="large-8 columns">'+
@@ -479,7 +474,7 @@ function generate_capacity_tab_content() {
               '<label  for="NAME">'+tr("Name")+'\
                 <span class="tip">'+tr("Name that the VM will get for description purposes.")+'</span>\
               </label>'+
-              '<input type="text" id="NAME" name="name" required/>'+
+              '<input type="text" id="NAME" name="name"/>'+
             '</div>'+
             '<div class="large-12 columns">'+
               '<label  for="DESCRIPTION">'+tr("Description")+'\
@@ -514,14 +509,7 @@ function generate_capacity_tab_content() {
           '</div>'+
         '</div>'+
     '</div>'+
-    generate_capacity_inputs();
-
-    return html;
-}
-
-// Warning: used also in vms-tab.js
-function generate_capacity_inputs() {
-    var html = '<div class="vm_param">'+
+    '<div class="vm_param">'+
         '<input type="hidden" id="MEMORY" name="memory" />'+
     '</div>'+
     '<div class="row">'+
@@ -585,21 +573,12 @@ function generate_capacity_inputs() {
     return html;
 }
 
+/**************************************************************************
+    CAPACITY TAB
+
+**************************************************************************/
+
 function setup_capacity_tab_content(capacity_section) {
-    setupTips(capacity_section);
-
-    capacity_section.on("change", "#LOGO", function(){
-      $("#template_create_logo",capacity_section).show();
-      $("#template_create_logo",capacity_section).html('<a  class="th radius" href="#">'+
-          '<img src="' + $(this).val() + '">'+
-        '</a>');
-    });
-
-    setup_capacity_inputs(capacity_section);
-}
-
-// Warning: used also in vms-tab.js
-function setup_capacity_inputs(capacity_section) {
     setupTips(capacity_section);
 
     // Hide advanced options
@@ -608,6 +587,13 @@ function setup_capacity_inputs(capacity_section) {
     $('#advanced_capacity',capacity_section).click(function(){
         $('.advanced',capacity_section).toggle();
         return false;
+    });
+
+    capacity_section.on("change", "#LOGO", function(){
+      $("#template_create_logo",capacity_section).show();
+      $("#template_create_logo",capacity_section).html('<a  class="th radius" href="#">'+
+          '<img src="' + $(this).val() + '">'+
+        '</a>');
     });
 
     // Define the cpu slider
@@ -1383,7 +1369,7 @@ function setup_disk_tab_content(disk_section, str_disk_tab_id, str_datatable_id)
 function generate_nic_tab_content(str_nic_tab_id, str_datatable_id){
   var html = '<div class="row">'+
     '<div class="large-8 columns">' +
-       '<button id="refresh_template_nic_table_button_class'+str_nic_tab_id+'" type="button" class="button small radius secondary refresh"><i class="fa fa-refresh" /></button>' +
+       '<button id="refresh_template_nic_table_button_class'+str_nic_tab_id+'" type="button" class="button small radius secondary"><i class="fa fa-refresh" /></button>' +
     '</div>' +
     '<div class="large-4 columns">'+
       '<input id="'+str_nic_tab_id+'_search" class="search" type="text" placeholder="'+tr("Search")+'"/>'+
@@ -3241,8 +3227,7 @@ function setup_context_tab_content(context_section) {
         $(".service_custom_attrs tbody").append(
             '<tr>\
                 <td>\
-                    <input class="user_input_name" type="text" pattern="[\\w]+"/>\
-                    <small class="error">'+ tr("Only word characters are allowed") + '</small>\
+                    <input class="user_input_name" type="text"/>\
                 </td>\
                 <td>\
                     <select class="user_input_type" >\
@@ -3785,26 +3770,31 @@ function initialize_create_template_dialog(dialog) {
     }
 
     //Process form
-    $('#create_template_form',dialog).on('invalid', function () {
-        notifyError(tr("One or more required fields are missing or malformed."));
-    }).on('valid', function() {
-        if ($('#create_template_form',dialog).attr("opennebula_action") == "create") {
-          $create_template_dialog = dialog;
-           //wrap it in the "vmtemplate" object
-          var vm_json = build_template();
-          vm_json = {vmtemplate: vm_json};
+    $('button#create_template_form_easy',dialog).click(function(){
+        $create_template_dialog = dialog;
+         //wrap it in the "vmtemplate" object
+        var vm_json = build_template();
+        vm_json = {vmtemplate: vm_json};
 
-          //validate form
-          Sunstone.runAction("Template.create",vm_json);
-          return false;
-        } else if ($('#create_template_form',dialog).attr("opennebula_action") == "update") {
-          var vm_json = build_template();
-          vm_json = {vmtemplate: vm_json};
-          vm_json =JSON.stringify(vm_json);
+        if (vm_json.vmtemplate.NAME == undefined ||
+            vm_json.vmtemplate.NAME.length == 0 ) {
 
-          Sunstone.runAction("Template.update",template_to_update_id,vm_json);
-          return false;
+            notifyError(tr("Virtual Machine name missing!"));
+            return false;
         }
+
+        //validate form
+        Sunstone.runAction("Template.create",vm_json);
+        return false;
+    });
+
+    $('button#template_template_update_button',dialog).click(function(){
+        var vm_json = build_template();
+        vm_json = {vmtemplate: vm_json};
+        vm_json =JSON.stringify(vm_json);
+
+        Sunstone.runAction("Template.update",template_to_update_id,vm_json);
+        return false;
     });
 
     $('button#manual_template_update_button',dialog).click(function(){
@@ -3837,7 +3827,6 @@ function popUpUpdateTemplateDialog(){
 
     setupCreateTemplateDialog();
 
-    $("#create_template_form", $create_template_dialog).attr("opennebula_action", "update");
     $('button#create_template_form_easy', $create_template_dialog).hide();
     $('button#template_template_update_button', $create_template_dialog).show();
     $('button#template_template_reset_button', $create_template_dialog).hide();
@@ -3848,8 +3837,7 @@ function popUpUpdateTemplateDialog(){
     $('#update_template_header', $create_template_dialog).show();
 
     $('#template_name_form', $create_template_dialog).hide();
-    $('#NAME', $create_template_dialog).attr("disabled", "disabled");
-    $('#NAME', $create_template_dialog).removeAttr("required");
+    $('#NAME').attr("disabled", "disabled");;
 
     $create_template_dialog.die();
     $create_template_dialog.live('closed', function () {
@@ -3866,7 +3854,6 @@ function popUpCreateTemplateDialog(){
 
     $create_template_dialog.die();
 
-    $("#create_template_form", $create_template_dialog).attr("opennebula_action", "create");
     $('button#create_template_form_easy', $create_template_dialog).show();
     $('button#template_template_update_button', $create_template_dialog).hide();
     $('button#template_template_reset_button', $create_template_dialog).show();
@@ -3877,8 +3864,7 @@ function popUpCreateTemplateDialog(){
     $('#update_template_header', $create_template_dialog).hide();
 
     $('#template_name_form', $create_template_dialog).show();
-    $('#NAME', $create_template_dialog).removeAttr('disabled');
-    $('#NAME', $create_template_dialog).attr("required", "");
+    $('#NAME').removeAttr('disabled');
 
     $('#wizard_mode', $create_template_dialog).show();
 
@@ -3930,7 +3916,6 @@ function fillTemplatePopUp(template, dialog){
         });
     };
 
-    // Populates the Avanced mode Tab
     $('#template',dialog).val(convert_template_to_string(template).replace(/^[\r\n]+$/g, ""));
 
     //
@@ -3939,7 +3924,7 @@ function fillTemplatePopUp(template, dialog){
 
     var capacity_section = $('#capacityTab', dialog);
     autoFillInputs(template, capacity_section);
-    $("#DESCRIPTION", capacity_section).val(escapeDoubleQuotes(htmlDecode(template["DESCRIPTION"])));
+    $("#DESCRIPTION", capacity_section).val(template["DESCRIPTION"]);
     delete template["DESCRIPTION"];
 
     //
@@ -4231,7 +4216,7 @@ function fillTemplatePopUp(template, dialog){
     if (graphics) {
         var type = graphics.TYPE;
         if (graphics.TYPE) {
-            $("input[value='"+ type.toUpperCase() + "']").click();
+            $("input[value='"+ type + "']").click();
 
             autoFillInputs(graphics, graphics_section);
         }
@@ -4293,7 +4278,7 @@ function fillTemplatePopUp(template, dialog){
         var parts = value.split("|");
         $(".user_input_name", context).val(key);
         $(".user_input_type", context).val(parts[1]);
-        $(".user_input_description", context).val(escapeDoubleQuotes(htmlDecode(parts[2])));
+        $(".user_input_description", context).val(parts[2]);
 
         $(".add_service_custom_attr", context_section).trigger("click");
 
@@ -4362,8 +4347,9 @@ function fillTemplatePopUp(template, dialog){
               var element2 = document.createElement("input");
               element2.id = "VALUE";
               element2.type = "text";
-              element2.value = escapeDoubleQuotes(htmlDecode(value));
+              element2.value = htmlDecode(value);
               cell2.appendChild(element2);
+
 
               var cell3 = row.insertCell(2);
               cell3.innerHTML = "<i class='fa fa-times-circle fa fa-lg remove-tab'></i>";
@@ -4640,7 +4626,7 @@ function popUpTemplateCloneDialog(){
 // Sets up the instiantiate template dialog and all the processing associated to it
 function setupInstantiateTemplateDialog(){
 
-    dialogs_context.append('<div id="instantiate_vm_template_dialog"></div>');
+    dialogs_context.append('<div title=\"'+tr("Instantiate VM Template")+'\" id="instantiate_vm_template_dialog"></div>');
     //Insert HTML in place
     $instantiate_vm_template_dialog = $('#instantiate_vm_template_dialog')
     var dialog = $instantiate_vm_template_dialog;
@@ -4677,9 +4663,7 @@ function setupInstantiateTemplateDialog(){
 
     setupTips(dialog);
 
-    $('#instantiate_vm_template_form',dialog).on('invalid', function () {
-        notifyError(tr("One or more required fields are missing or malformed."));
-    }).on('valid', function() {
+    $('#instantiate_vm_template_form',dialog).submit(function(){
         var vm_name = $('#vm_name',this).val();
         var n_times = $('#vm_n_times',this).val();
         var n_times_int=1;

@@ -18,9 +18,6 @@
 var INCLUDE_URI = "vendor/noVNC/";
 var VM_HISTORY_LENGTH = 40;
 
-// Only one vnc request is allowed
-var vnc_lock = false;
-
 function loadVNC(){
     var script = '<script src="vendor/noVNC/vnc.js"></script>';
     document.write(script);
@@ -538,10 +535,7 @@ var vm_actions = {
         type: "single",
         call: OpenNebula.VM.startvnc,
         callback: vncCallback,
-        error: function(req, resp){
-            onError(req, resp);
-            vnc_lock = false;
-        },
+        error: onError,
         notify: true
     },
 
@@ -2372,7 +2366,7 @@ function setupResizeCapacityDialog(){
                   '</label>\
           </div>\
           </div>' +
-          generate_capacity_inputs() +
+          generate_capacity_tab_content() +
           '<div class="reveal-footer">\
           <div class="form_buttons">\
               <button class="button radius right success" id="resize_capacity_button" type="submit" value="VM.resize">'+tr("Resize")+'</button>\
@@ -2384,7 +2378,9 @@ function setupResizeCapacityDialog(){
     dialog.addClass("reveal-modal large max-height").attr("data-reveal", "");
     setupTips(dialog);
 
-    setup_capacity_inputs(dialog);
+    $("#template_name_form", dialog).hide();
+
+    setup_capacity_tab_content(dialog);
 
     $('#resize_capacity_form',dialog).submit(function(){
         var vm_id = $('#vm_id', this).text();
@@ -2990,27 +2986,15 @@ function setupVNC(){
         var id = $(this).attr('vm_id');
 
         //Ask server for connection params
-        if (!vnc_lock) {
-            vnc_lock = true
-            Sunstone.runAction("VM.startvnc_action",id);
-            return false;
-        } else {
-            notifyError(tr("VNC Connection in progress"))
-            return false;
-        }
+        Sunstone.runAction("VM.startvnc_action",id);
+        return false;
     });
 }
 
 // Open vnc window
 function popUpVnc(){
     $.each(getSelectedNodes(dataTable_vMachines), function(index, elem) {
-        if (!vnc_lock) {
-            vnc_lock = true
-            Sunstone.runAction("VM.startvnc_action", elem);
-        } else {
-            notifyError(tr("VNC Connection in progress"))
-            return false;
-        }
+        Sunstone.runAction("VM.startvnc_action", elem);
     });
 }
 
@@ -3040,7 +3024,6 @@ function vncCallback(request,response){
     $("#open_in_a_new_window").attr('href', url)
     rfb.connect(proxy_host, proxy_port, pw, path);
     $vnc_dialog.foundation("reveal", "open");
-    vnc_lock = false;
 
     $vnc_dialog.off("closed");
     $vnc_dialog.on("closed", function () {

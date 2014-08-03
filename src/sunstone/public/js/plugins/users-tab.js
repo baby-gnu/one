@@ -134,25 +134,136 @@ var change_password_tmpl = '<div class="row">\
   <a class="close-reveal-modal">&#215;</a>\
 </form>';
 
-function user_quotas_tmpl(){
-    return '<div class="row">\
-      <div class="large-12 columns">\
-        <h3 class="subheader">'+tr("Update Quota")+'</h3>\
-      </div>\
+var quotas_tmpl = '<div class="row">\
+    <div class="large-12 columns">\
+      <dl class="tabs right-info-tabs text-center" data-tab>\
+           <dd class="active"><a href="#vm_quota"><i class="fa fa-cloud"></i><br>'+tr("VM")+'</a></dd>\
+           <dd><a href="#datastore_quota"><i class="fa fa-folder-open"></i><br>'+tr("Datastore")+'</a></dd>\
+           <dd><a href="#image_quota"><i class="fa fa-upload"></i><br>'+tr("Image")+'</a></dd>\
+           <dd><a href="#network_quota"><i class="fa fa-globe"></i><br>'+tr("VNet")+'</a></dd>\
+      </dl>\
     </div>\
-    <div class="reveal-body">\
-      <form id="user_quotas_form" action="">'+
-        quotas_tmpl() +
-        '<div class="reveal-footer">\
-          <div class="form_buttons">\
-            <button class="button radius right success" id="create_user_submit" \
-            type="submit" value="User.set_quota">'+tr("Apply changes")+'</button>\
+  </div>\
+  <div class="row">\
+    <div class="large-4 columns">\
+      <div class="tabs-content">\
+      <div id="vm_quota" class="content active">\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max VMs")+'\
+                <input type="text" name="VMS"></input>\
+              </label>\
           </div>\
         </div>\
-        <a class="close-reveal-modal">&#215;</a>\
-      </form>\
-    </div>';
-}
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max Memory (MB)")+'\
+                <input type="text" name="MEMORY"></input>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max CPU")+'\
+                <input type="text" name="CPU"></input>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max Volatile Storage (MB)")+'\
+                <input type="text" name="VOLATILE_SIZE"></input>\
+              </label>\
+          </div>\
+        </div>\
+      </div>\
+      <div id="datastore_quota" class="content">\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Datastore")+'\
+                <select name="ID"></select>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max size (MB)")+'\
+                <input type="text" name="SIZE"></input>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max images")+'\
+                <input type="text" name="IMAGES"></input>\
+              </label>\
+          </div>\
+        </div>\
+      </div>\
+      <div id="image_quota" class="content">\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Image")+'\
+                <select name="ID"></select>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max RVMs")+'\
+                <input type="text" name="RVMS"></input>\
+              </label>\
+          </div>\
+        </div>\
+      </div>\
+      <div id="network_quota" class="content">\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Network")+'\
+                <select name="ID"></select>\
+              </label>\
+          </div>\
+        </div>\
+        <div class="row">\
+          <div class="large-12 columns">\
+              <label>'+tr("Max leases")+'\
+                <input type="text" name="LEASES"></input>\
+              </label>\
+          </div>\
+        </div>\
+      </div>\
+      </div>\
+      <button class="button right small radius" id="add_quota_button" value="add_quota">'+tr("Add/edit quota")+'</button>\
+    </div>\
+    <div class="large-8 columns">\
+      <div class="current_quotas">\
+         <table class="dataTable extended_table" cellpadding="0" cellspacing="0" border="0">\
+            <thead><tr>\
+                 <th>'+tr("Type")+'</th>\
+                 <th>'+tr("Quota")+'</th>\
+                 <th>'+tr("Edit")+'</th></tr></thead>\
+            <tbody>\
+            </tbody>\
+         </table>\
+      </div>\
+    </div>\
+  </div>'
+var user_quotas_tmpl = '<div class="row">\
+  <div class="large-12 columns">\
+    <h3 id="create_vnet_header" class="subheader">'+tr("Update Quota")+'</h3>\
+  </div>\
+</div>\
+<div class="reveal-body">\
+<form id="user_quotas_form" action="">'+
+  quotas_tmpl +
+  '<div class="reveal-footer">\
+      <div class="form_buttons">\
+          <button class="button radius right success" id="create_user_submit" type="submit" value="User.set_quota">'+tr("Apply changes")+'</button>\
+      </div>\
+  </div>\
+  <a class="close-reveal-modal">&#215;</a>\
+</form>\
+  </div>';
 
 
 var user_actions = {
@@ -279,11 +390,14 @@ var user_actions = {
         type: "single",
         call: OpenNebula.User.show,
         callback: function (request,response) {
-            populateQuotasDialog(
-                response.USER,
-                default_user_quotas,
-                "#user_quotas_dialog",
-                $user_quotas_dialog);
+            // when we receive quotas we parse them and create an
+            // quota objects with html code (<li>) that can be inserted
+            // in the dialog
+            var parsed = parseQuotas(response.USER,quotaListItem);
+            $('.current_quotas table tbody',$user_quotas_dialog).append(parsed.VM);
+            $('.current_quotas table tbody',$user_quotas_dialog).append(parsed.DATASTORE);
+            $('.current_quotas table tbody',$user_quotas_dialog).append(parsed.IMAGE);
+            $('.current_quotas table tbody',$user_quotas_dialog).append(parsed.NETWORK);
         },
         error: onError
     },
@@ -588,10 +702,34 @@ function updateUserInfo(request,user){
     };
 
     var default_user_quotas = Quotas.default_quotas(info.DEFAULT_USER_QUOTAS);
+    var vms_quota = Quotas.vms(info, default_user_quotas);
+    var cpu_quota = Quotas.cpu(info, default_user_quotas);
+    var memory_quota = Quotas.memory(info, default_user_quotas);
+    var volatile_size_quota = Quotas.volatile_size(info, default_user_quotas);
+    var image_quota = Quotas.image(info, default_user_quotas);
+    var network_quota = Quotas.network(info, default_user_quotas);
+    var datastore_quota = Quotas.datastore(info, default_user_quotas);
 
-    var quotas_html = initQuotasPanel(info, default_user_quotas,
-        "#user_info_panel",
-        Config.isTabActionEnabled("users-tab", "User.quotas_dialog"));
+    var quotas_html;
+    if (vms_quota || cpu_quota || memory_quota || volatile_size_quota || image_quota || network_quota || datastore_quota) {
+      quotas_html = '<div class="quotas">';
+      quotas_html += '<div class="large-6 columns">' + vms_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + cpu_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + memory_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + volatile_size_quota+ '</div>';
+      quotas_html += '<br><br>';
+      quotas_html += '<div class="large-6 columns">' + image_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + network_quota + '</div>';
+      quotas_html += '<br><br>';
+      quotas_html += '<div class="large-12 columns">' + datastore_quota + '</div>';
+      quotas_html += '</div>';
+    } else {
+      quotas_html = '<div class="row">\
+              <div class="large-12 columns">\
+                <p class="subheader">'+tr("No quotas defined")+'</p>\
+              </div>\
+            </div>'
+    }
 
     var quotas_tab = {
         title : tr("Quotas"),
@@ -616,10 +754,6 @@ function updateUserInfo(request,user){
         {   fixed_user: info.ID,
             init_group_by: "vm" });
 
-    setupQuotasPanel(info,
-        "#user_info_panel",
-        Config.isTabActionEnabled("users-tab", "User.quotas_dialog"),
-        "User");
 };
 
 // Used also from groups-tabs.js
@@ -745,10 +879,10 @@ function setupChangeAuthenticationDialog(){
 
 //add a setup quota dialog and call the sunstone-util.js initialization
 function setupUserQuotasDialog(){
-    dialogs_context.append('<div id="user_quotas_dialog"></div>');
+    dialogs_context.append('<div title="'+tr("User quotas")+'" id="user_quotas_dialog"></div>');
     $user_quotas_dialog = $('#user_quotas_dialog',dialogs_context);
     var dialog = $user_quotas_dialog;
-    dialog.html(user_quotas_tmpl());
+    dialog.html(user_quotas_tmpl);
 
     $(document).foundation();
 
@@ -756,18 +890,7 @@ function setupUserQuotasDialog(){
 }
 
 function popUpUserQuotasDialog(){
-    var tab = dataTable_users.parents(".tab");
-    if (Sunstone.rightInfoVisible(tab)) {
-        $('a[href="#user_quotas_tab"]', tab).click();
-        $('#edit_quotas_button', tab).click();
-    } else {
-        popUpQuotasDialog(
-            $user_quotas_dialog,
-            'User',
-            userElements(),
-            default_user_quotas,
-            "#user_quotas_dialog");
-    }
+    popUpQuotasDialog($user_quotas_dialog, 'User', userElements());
 }
 
 function popUpCreateUserDialog(){

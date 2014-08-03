@@ -129,15 +129,8 @@ class OpenNebulaVNC
             return false
         end
 
-        begin
-            File.open(@lock_file, "w") do |f|
-                f.write(pid.to_s)
-            end
-        rescue Exception => e
-            @logger.error e.message
-            Process.kill('-KILL', pid)
-
-            return false
+        File.open(@lock_file, "w") do |f|
+            f.write(pid.to_s)
         end
 
         sleep 1
@@ -309,9 +302,9 @@ if RUBY_VERSION<'1.9'
             command=args[0..-2]
 
             # Close stdin and point out and err to log file
+            $stdin.close
             $stdout.reopen(VNC_LOG, "a")
             $stderr.reopen(VNC_LOG, "a")
-            $stdin.close
 
             # Detach process from the parent
             Process.setsid

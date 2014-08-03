@@ -43,9 +43,6 @@
       var available_views = JSON.parse('["<%=
         $views_config.available_views(session[:user], session[:user_gname]).join('","')
       %>"]')
-      var all_views = JSON.parse('["<%=
-        $views_config.get_all_views.join('","')
-      %>"]')      
 
       config = {
         'user_config' : {
@@ -60,7 +57,6 @@
         },
         'view' : view,
         'available_views' : available_views,
-        'all_views' : all_views,
         'user_id' : '<%= session[:user_id] %>',
         'user_gid' : '<%= session[:user_gid] %>',
         'display_name' : '<%= session[:display_name] %>',
@@ -97,7 +93,7 @@
         </div>
       </div>
       <div id="footer" class="text-center large-10 columns right">
-        <a href="http://opennebula.org" target="_blank">OpenNebula 4.8.0</a> by <a href="http://c12g.com" target="_blank">C12G Labs</a>.
+        <a href="http://opennebula.org" target="_blank">OpenNebula 4.7.80</a> by <a href="http://c12g.com" target="_blank">C12G Labs</a>.
       </div>
       <div class="large-12 columns" id="dialogs"></div>
     </div>

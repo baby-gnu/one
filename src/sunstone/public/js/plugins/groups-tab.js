@@ -123,9 +123,9 @@ function create_group_tmpl(dialog_name){
       <div class="row">\
         <div class="large-12 columns">\
           <label>\
-            <input type="checkbox" id="shared_resources" name="shared_resources" value="YES" />\
-            '+tr("Allow users to view the VMs and Services of other users in the same group")+'\
-            <span class="tip">'+tr("An ACL Rule will be created to give users in this group access to all the resources in the same group.")+'</span>\
+            <input type="checkbox" id="share_vms" name="share_vms" value="YES" />\
+            '+tr("Allow users to view the VMs of other users in the same group")+'\
+            <span class="tip">'+tr("An ACL Rule will be created to give users in this group access to all the VMs in the same group.")+'</span>\
           </label>\
         </div>\
       </div>\
@@ -184,25 +184,22 @@ function create_group_tmpl(dialog_name){
 </div>';
 }
 
-function group_quotas_tmpl(){
-    return '<div class="row" class="subheader">\
-      <div class="large-12 columns">\
-        <h3 id="create_group_quotas_header">'+tr("Update Quota")+'</h3>\
-      </div>\
+var group_quotas_tmpl = '<div class="row" class="subheader">\
+  <div class="large-12 columns">\
+    <h3 id="create_group_quotas_header">'+tr("Update Quota")+'</h3>\
+  </div>\
+</div>\
+<div class="reveal-body">\
+<form id="group_quotas_form" action="">'+
+  quotas_tmpl +
+  '<div class="reveal-footer">\
+    <div class="form_buttons">\
+        <button class="button radius right success" id="create_user_submit" type="submit" value="Group.set_quota">'+tr("Apply changes")+'</button>\
     </div>\
-    <div class="reveal-body">\
-    <form id="group_quotas_form" action="">'+
-      quotas_tmpl() +
-      '<div class="reveal-footer">\
-        <div class="form_buttons">\
-            <button class="button radius right success" id="create_user_submit" \
-            type="submit" value="Group.set_quota">'+tr("Apply changes")+'</button>\
-        </div>\
-      </div>\
-      <a class="close-reveal-modal">&#215;</a>\
-    </form>\
-    </div>';
-}
+  </div>\
+  <a class="close-reveal-modal">&#215;</a>\
+</form>\
+</div>';
 
 
 var group_actions = {
@@ -298,11 +295,11 @@ var group_actions = {
         type: "single",
         call: OpenNebula.Group.show,
         callback: function (request,response) {
-            populateQuotasDialog(
-                response.GROUP,
-                default_group_quotas,
-                "#group_quotas_dialog",
-                $group_quotas_dialog);
+            var parsed = parseQuotas(response.GROUP,quotaListItem);
+            $('.current_quotas table tbody',$group_quotas_dialog).append(parsed.VM);
+            $('.current_quotas table tbody',$group_quotas_dialog).append(parsed.DATASTORE);
+            $('.current_quotas table tbody',$group_quotas_dialog).append(parsed.IMAGE);
+            $('.current_quotas table tbody',$group_quotas_dialog).append(parsed.NETWORK);
         },
         error: onError
     },
@@ -465,7 +462,7 @@ Sunstone.addInfoPanel("group_info_panel",group_info_panel);
 
 function insert_views(dialog_name){
   var views_checks_str = "";
-  var views_array = config['all_views'];
+  var views_array = config['available_views'];
   for (var i = 0; i < views_array.length; i++)
   {
     var checked = views_array[i] == 'cloud' ? "checked" : "";
@@ -481,7 +478,7 @@ function insert_views(dialog_name){
 
 function insert_views_default(dialog_name){
   var views_checks_str = "";
-  var views_array = config['all_views'];
+  var views_array = config['available_views'];
   for (var i = 0; i < views_array.length; i++)
   {
     views_checks_str = views_checks_str +
@@ -688,10 +685,35 @@ function updateGroupInfo(request,group){
       }
 
     var default_group_quotas = Quotas.default_quotas(info.DEFAULT_GROUP_QUOTAS);
+    var vms_quota = Quotas.vms(info, default_group_quotas);
+    var cpu_quota = Quotas.cpu(info, default_group_quotas);
+    var memory_quota = Quotas.memory(info, default_group_quotas);
+    var volatile_size_quota = Quotas.volatile_size(info, default_group_quotas);
+    var image_quota = Quotas.image(info, default_group_quotas);
+    var network_quota = Quotas.network(info, default_group_quotas);
+    var datastore_quota = Quotas.datastore(info, default_group_quotas);
 
-    var quotas_html = initQuotasPanel(info, default_group_quotas,
-        "#group_info_panel",
-        Config.isTabActionEnabled("groups-tab", "Group.quotas_dialog"));
+    var quotas_html;
+    if (vms_quota || cpu_quota || memory_quota || volatile_size_quota || image_quota || network_quota || datastore_quota) {
+      quotas_html = '<div class="quotas">';
+      quotas_html += '<div class="large-6 columns">' + vms_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + cpu_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + memory_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + volatile_size_quota+ '</div>';
+      quotas_html += '<br><br>';
+      quotas_html += '<div class="large-6 columns">' + image_quota + '</div>';
+      quotas_html += '<div class="large-6 columns">' + network_quota + '</div>';
+      quotas_html += '<br><br>';
+      quotas_html += '<div class="large-12 columns">' + datastore_quota + '</div>';
+      quotas_html += '</div>';
+
+    } else {
+      quotas_html = '<div class="row">\
+              <div class="large-12 columns">\
+                <p class="subheader">'+tr("No quotas defined")+'</p>\
+              </div>\
+            </div>'
+    }
 
     var quotas_tab = {
         title : tr("Quotas"),
@@ -750,11 +772,6 @@ function updateGroupInfo(request,group){
         $("#group_accounting","#group_info_panel"),
         {   fixed_group: info.ID,
             init_group_by: "user" });
-
-    setupQuotasPanel(info,
-        "#group_info_panel",
-        Config.isTabActionEnabled("groups-tab", "Group.quotas_dialog"),
-        "Group");
 }
 
 function setup_group_resource_tab_content(zone_id, zone_section, str_zone_tab_id, str_datatable_id, selected_group_clusters, group) {
@@ -1148,8 +1165,8 @@ function setupCreateGroupDialog(){
 
         group_json['group']['resources'] = resources;
 
-        if ( $('#shared_resources', this).prop('checked') ){
-            group_json['group']['shared_resources'] = "VM+DOCUMENT";
+        if ( $('#share_vms', this).prop('checked') ){
+            group_json['group']['shared_resources'] = "VM";
         }
 
         if (user_json){
@@ -1382,27 +1399,16 @@ function popUpUpdateGroupDialog(group, dialog)
 
 // Add groups quotas dialog and calls common setup() in sunstone utils.
 function setupGroupQuotasDialog(){
-    dialogs_context.append('<div id="group_quotas_dialog"></div>');
+    dialogs_context.append('<div title="'+tr("Group quotas")+'" id="group_quotas_dialog"></div>');
     $group_quotas_dialog = $('#group_quotas_dialog',dialogs_context);
     var dialog = $group_quotas_dialog;
-    dialog.html(group_quotas_tmpl());
+    dialog.html(group_quotas_tmpl);
 
     setupQuotasDialog(dialog);
 }
 
 function popUpGroupQuotasDialog(){
-    var tab = dataTable_groups.parents(".tab");
-    if (Sunstone.rightInfoVisible(tab)) {
-        $('a[href="#group_quotas_tab"]', tab).click();
-        $('#edit_quotas_button', tab).click();
-    } else {
-        popUpQuotasDialog(
-            $group_quotas_dialog,
-            'Group',
-            groupElements(),
-            default_group_quotas,
-            "#group_quotas_dialog");
-    }
+    popUpQuotasDialog($group_quotas_dialog, 'Group', groupElements())
 }
 
 $(document).ready(function(){

@@ -57,9 +57,9 @@ var create_file_tmpl ='<div class="row">\
                         '</span>'+
                       '</label>\
                        <select name="file_type" id="file_type">\
-                            <option value="CONTEXT">'+tr("Context")+'</option>\
                             <option value="KERNEL">'+tr("Kernel")+'</option>\
                             <option value="RAMDISK">'+tr("Ramdisk")+'</option>\
+                            <option value="CONTEXT">'+tr("Context")+'</option>\
                        </select>\
                     </div>\
                   </div>\
@@ -97,7 +97,7 @@ var create_file_tmpl ='<div class="row">\
                </div>\
             </fieldset>\
             <div class="form_buttons">\
-              <button class="button success radius right" id="create_file_submit" type="submit" value="file/create">'+tr("Create")+'</button>\
+              <button class="button success radius right" id="create_file_submit" type="button" value="file/create">'+tr("Create")+'</button>\
               <button id="wizard_file_reset_button"  class="button secondary radius" type="reset" value="reset">'+tr("Reset")+'</button>\
             </div>\
         </div>\
@@ -674,7 +674,7 @@ function setupCreateFileDialog(){
                 $('#files'+id+'progressBar').remove();
             } else {
                 notifyMessage("File uploaded correctly");
-                Sunstone.runAction("File.refresh");
+                Sunstone.runAction("File.list");
                 $('#files'+id+'progressBar').remove();
             }
 
@@ -692,7 +692,7 @@ function setupCreateFileDialog(){
         file_input = input;  return false;
     };
 
-    $('#create_file_form_easy',dialog).submit(function(){
+    $('#create_file_submit',dialog).click(function(){
         var upload = false;
 
         var ds_id = $('#file_datastore .resource_list_select',dialog).val();

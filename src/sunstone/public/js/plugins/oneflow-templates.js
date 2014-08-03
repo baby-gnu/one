@@ -24,13 +24,13 @@ var create_service_template_tmpl = '\
     </div>\
 </div>\
 <div class="reveal-body create_form">\
-  <form data-abide="ajax" id="create_service_template_form" action="">\
+  <form id="create_service_template_form" action="">\
     <div class="row">\
         <div class="service_template_param st_man large-6 columns">\
             <label for="service_name">' + tr("Name") +
                 '<span class="tip">'+ tr("Name for this template") +'</span>'+
             '</label>'+
-            '<input type="text" id="service_name" name="service_name" required/>\
+            '<input type="text" id="service_name" name="service_name" />\
         </div>\
         <div class="service_template_param st_man large-6 columns">'+
         '</div>\
@@ -125,9 +125,9 @@ var create_service_template_tmpl = '\
                         </div>\
                         <div class="row">\
                             <div class="service_template_param st_man large-6 columns">\
-                                <input type="checkbox" name="ready_status_gate" id="ready_status_gate"/>\
-                                <label for="ready_status_gate">'+tr("Wait for VMs to report that they are READY")+'\
-                                  <span class="tip">' + tr("Before deploying any child roles, wait for all VMs of the parent roles to report via OneGate that they are READY=YES") +'</span>\
+                                <input type="checkbox" name="running_status_gate" id="running_status_gate"/>\
+                                <label for="running_status_gate">'+tr("Running status reported by VM")+'\
+                                  <span class="tip">' + tr("Running status is reported by the VM to the OneGate server.") +'</span>\
                                 </label>\
                             </div>\
                         </div>\
@@ -170,7 +170,7 @@ var role_tab_content = '\
               <label for="name">' + tr("Role Name") +
                 '<span class="tip">'+ tr("Name of the role") +'</span>'+
               '</label>\
-              <input type="text" id="role_name" name="name" required/>\
+              <input type="text" id="role_name" name="name"/>\
     </div>\
 </div>\
 <div class="row">\
@@ -411,7 +411,7 @@ var instantiate_service_template_tmpl ='\
 <div class="row">\
   <h3 class="subheader">'+tr("Instantiate Service Template")+'</h3>\
 </div>\
-<form data-abide="ajax" id="instantiate_service_template_form" action="">\
+<form id="instantiate_service_template_form" action="">\
   <div class="row">\
     <div class="large-6 columns">\
         <label for="service_name">'+tr("Service Name")+
@@ -745,57 +745,6 @@ function updateServiceTemplatesView(request, service_templates_list){
 function updateServiceTemplateInfo(request,elem){
     var elem_info = elem.DOCUMENT;
 
-    var network_configuration = "";
-    if (elem_info.TEMPLATE.BODY['custom_attrs']) {
-        network_configuration +=
-            '<table id="info_template_table" class="dataTable extended_table">\
-                <thead>\
-                <tr><th colspan="2">'+tr("Network Configuration")+'</th></tr>\
-            </thead>'
-
-        $.each(elem_info.TEMPLATE.BODY['custom_attrs'], function(key, attr){
-            var parts = attr.split("|");
-            // 0 mandatory; 1 type; 2 desc;
-            var attrs = {
-              "name": key,
-              "mandatory": parts[0],
-              "type": parts[1],
-              "description": parts[2],
-            }
-
-            switch (parts[1]) {
-              case "vnet_id":
-                network_configuration +=
-                   '<tr>\
-                     <td class="key_td">'+htmlDecode(attrs.name)+'</td>\
-                     <td class="value_td">'+htmlDecode(attrs.description)+'</td>\
-                   </tr>'
-
-                var roles_using_net = [];
-                $.each(elem_info.TEMPLATE.BODY.roles, function(index, value){
-                    if (value.vm_template_contents){
-                        var reg = new RegExp("\\$"+htmlDecode(attrs.name)+"\\b");
-
-                        if(reg.exec(value.vm_template_contents) != null){
-                            roles_using_net.push(value.name);
-                            console.log(roles_using_net)
-                        }
-                    }
-                })
-
-                network_configuration +=
-                   '<tr>\
-                     <td class="key_td"></td>\
-                     <td class="value_td">'+tr("Roles") + ": " + roles_using_net.join(", ")+'</td>\
-                   </tr>'
-
-                break;
-            }
-        });
-
-        network_configuration += '</table>';
-    }
-
     var info_tab = {
         title : tr("Info"),
         icon: "fa-info-circle",
@@ -815,10 +764,6 @@ function updateServiceTemplateInfo(request,elem){
              <td class="value_td">'+elem_info.NAME+'</td>\
            </tr>\
            <tr>\
-             <td class="key_td">'+tr("Description")+'</td>\
-             <td class="value_td">'+(htmlDecode(elem_info.TEMPLATE.BODY.description)||"-")+'</td>\
-           </tr>\
-           <tr>\
              <td class="key_td">'+tr("Strategy")+'</td>\
              <td class="value_td">'+elem_info.TEMPLATE.BODY.deployment+'</td>\
            </tr>\
@@ -826,12 +771,7 @@ function updateServiceTemplateInfo(request,elem){
              <td class="key_td">'+tr("Shutdown action")+'</td>\
              <td class="value_td">'+elem_info.TEMPLATE.BODY.shutdown_action+'</td>\
            </tr>\
-           <tr>\
-             <td class="key_td">'+tr("Ready Status Gate")+'</td>\
-             <td class="value_td">'+(elem_info.TEMPLATE.BODY.ready_status_gate ? "yes" : "no")+'</td>\
-           </tr>\
          </table>' +
-         network_configuration +
        '</div>\
         <div class="large-6 columns">' + insert_permissions_table('oneflow-templates',
                                                               "ServiceTemplate",
@@ -1244,8 +1184,7 @@ function setupCreateServiceTemplateDialog(){
         $(".service_networks tbody").append(
             '<tr>\
                 <td>\
-                    <input class="service_network_name" type="text" pattern="[\\w]+"/>\
-                    <small class="error">'+ tr("Only word characters are allowed") + '</small>\
+                    <input class="service_network_name" type="text"/>\
                 </td>\
                 <td>\
                     <textarea class="service_network_description"/>\
@@ -1405,18 +1344,17 @@ function setupCreateServiceTemplateDialog(){
         add_role_tab(roles_index);
     });
 
-    $('#create_service_template_form',dialog).on('invalid', function () {
-        notifyError(tr("One or more required fields are missing or malformed."));
-    }).on('valid', function() {
-        if ($('#create_service_template_form',dialog).attr("opennebula_action") == "create") {
-            var json_template = generate_json_service_template_from_form();
-            Sunstone.runAction("ServiceTemplate.create", json_template );
-            return false;
-        } else if ($('#create_service_template_form',dialog).attr("opennebula_action") == "update") {
-            var json_template = generate_json_service_template_from_form();
-            Sunstone.runAction("ServiceTemplate.update",service_template_to_update_id, JSON.stringify(json_template));
-            return false;
-        }
+
+    $('#create_service_template_submit',dialog).click(function(){
+        var json_template = generate_json_service_template_from_form();
+        Sunstone.runAction("ServiceTemplate.create", json_template );
+        return false;
+    });
+
+    $('#update_service_template_submit',dialog).click(function(){
+        var json_template = generate_json_service_template_from_form();
+        Sunstone.runAction("ServiceTemplate.update",service_template_to_update_id, JSON.stringify(json_template));
+        return false;
     });
 
     $('#create_service_template_reset', dialog).click(function(){
@@ -1481,10 +1419,9 @@ var removeEmptyObjects = function(obj){
 
 function generate_json_service_template_from_form() {
     var name = $('input[name="service_name"]', $create_service_template_dialog).val();
-    var description = $('#description', $create_service_template_dialog).val();
     var deployment = $('select[name="deployment"]', $create_service_template_dialog).val();
     var shutdown_action_service = $('select[name="shutdown_action_service"]', $create_service_template_dialog).val();
-    var ready_status_gate = $('input[name="ready_status_gate"]', $create_service_template_dialog).prop("checked");
+    var running_status_gate = $('input[name="running_status_gate"]', $create_service_template_dialog).prop("checked");
 
     var custom_attrs =  {};
 
@@ -1507,6 +1444,7 @@ function generate_json_service_template_from_form() {
         role['shutdown_action'] = $('select[name="shutdown_action_role"]', this).val();
         role['parents'] = [];
         role['vm_template_contents'] = $(".vm_template_contents", this).val();
+        console.log($(".vm_template_contents", this).val())
 
         if (!name || !cardinality || !template){
             notifyError(tr("Please specify name, cardinality and template for this role"));
@@ -1574,7 +1512,6 @@ function generate_json_service_template_from_form() {
     var obj = {
         name: name,
         deployment: deployment,
-        description: description,
         roles: roles,
         custom_attrs: custom_attrs
     }
@@ -1583,7 +1520,7 @@ function generate_json_service_template_from_form() {
         obj['shutdown_action'] = shutdown_action_service
     }
 
-    obj['ready_status_gate'] = ready_status_gate
+    obj['running_status_gate'] = running_status_gate
 
     return obj;
 }
@@ -1597,7 +1534,6 @@ function popUpCreateServiceTemplateDialog(){
 
     dialog.die();
 
-    $("#create_service_template_form", dialog).attr("opennebula_action", "create");
     $("#create_service_template_header", dialog).show();
     $("#update_service_template_header", dialog).hide();
     $("#create_service_template_submit", dialog).show();
@@ -1633,7 +1569,6 @@ function popUpUpdateServiceTemplateDialog() {
 function fillUpUpdateServiceTemplateDialog(request, response){
     var dialog = $('#create_service_template_dialog',dialogs_context);
 
-    $("#create_service_template_form", dialog).attr("opennebula_action", "update");
     $("#create_service_template_header", dialog).hide();
     $("#update_service_template_header", dialog).show();
     $("#create_service_template_submit", dialog).hide();
@@ -1644,12 +1579,10 @@ function fillUpUpdateServiceTemplateDialog(request, response){
     $("#service_name", dialog).attr("disabled", "disabled");
     $("#service_name", dialog).val(htmlDecode(service_template.NAME));
 
-    $("#description", dialog).val(htmlDecode(service_template.TEMPLATE.BODY.description));
-
     // TODO Check if the template still exists
     $('select[name="deployment"]', dialog).val(service_template.TEMPLATE.BODY.deployment);
     $("select[name='shutdown_action_service']", dialog).val(service_template.TEMPLATE.BODY.shutdown_action);
-    $("input[name='ready_status_gate']", dialog).prop("checked",service_template.TEMPLATE.BODY.ready_status_gate || false);
+    $("input[name='running_status_gate']", dialog).prop("checked",service_template.TEMPLATE.BODY.running_status_gate || false);
 
     if (service_template.TEMPLATE.BODY['custom_attrs']) {
         $("a[href='#network_configuration_and_attributes']", dialog).trigger("click");
@@ -1884,9 +1817,7 @@ function setupInstantiateServiceTemplateDialog(){
 
     setupTips(dialog);
 
-    $('#instantiate_service_template_form',dialog).on('invalid', function () {
-        notifyError(tr("One or more required fields are missing or malformed."));
-    }).on('valid', function() {
+    $('#instantiate_service_template_form',dialog).submit(function(){
         var service_name = $('#service_name',this).val();
         var n_times = $('#service_n_times',this).val();
         var n_times_int=1;

@@ -1479,7 +1479,7 @@ function provision_list_vms(opts_arg){
           '<span href"#" class="right only-active button medium radius secondary provision_vms_list_filter_button" '+(!opts.filter ? 'style="display:none" ': "") + 'data-tooltip title="'+ tr("Filter by User")+'">'+
             '<i class="fa fa-fw fa-lg fa-filter"/> '+
           '</span>'+
-          '<span class="right only-active provision_list_vms_filter" style="display: none"></span>'+
+          '<span class=" only-active provision_list_vms_filter" style="display: none"></span>'+
           '<span>' +
           '<input type="search" class="right only-active provision_list_vms_search provision-search-input right" placeholder="Search"/>'+
           '<span href"#" class="right only-active button medium radius success provision_create_vm_button" '+(!opts.create ? 'style="display:none" ': "") + '>'+
@@ -1754,9 +1754,9 @@ var povision_actions = {
         Sunstone.runAction("Provision.User.set_quota", [response.USER.ID], {
           "VM" : {
             "VOLATILE_SIZE":"-1",
-            "VMS": $("#provision_rvms_quota_input").val()||QUOTA_LIMIT_UNLIMITED,
-            "MEMORY": $("#provision_memory_quota_input").val()||QUOTA_LIMIT_UNLIMITED,
-            "CPU": $("#provision_cpu_quota_input").val()||QUOTA_LIMIT_UNLIMITED}
+            "VMS": $("#provision_rvms_quota_input").val()||0,
+            "MEMORY": $("#provision_memory_quota_input").val()||0,
+            "CPU": $("#provision_cpu_quota_input").val()||0}
           });
       },
       error: onError
@@ -2850,8 +2850,8 @@ function show_provision_template_list(timeout) {
   $(".section_content").hide();
   $(".provision_templates_list_section").fadeIn();
 
-  //$("dd:not(.active) .provision_back", $(".provision_templates_list_section")).trigger("click");
-  $(".provision_templates_list_refresh_button", $(".provision_templates_list_section")).trigger("click");
+  $("dd:not(.active) .provision_back", $(".provision_flows_list_section")).trigger("click");
+  $(".provision_templates_list_refresh_button", $(".provision_flows_list_section")).trigger("click");
 }
 
 function update_provision_templates_datatable(datatable, timeout) {
@@ -3103,7 +3103,7 @@ function update_provision_flows_datatable(datatable, timeout) {
             '<br>'+
             '<br>'+
             '<span style="font-size: 18px; color: #999">'+
-              tr("There are no Services")+
+              tr("There no Services")+
             '</span>'+
             '<br>'+
             '<br>'+
@@ -3193,7 +3193,7 @@ function get_provision_flow_state(data) {
       state_str = tr("SCALING");
       break;
     case tr("COOLDOWN"):
-      state_color = 'error';
+      state_color = 'off';
       state_str = tr("COOLDOWN");
       break;
     case tr("DONE"):
@@ -3789,8 +3789,7 @@ function setup_info_vm(context) {
         id: vm_id
       },
       success: function(request, response){
-        $(".provision_back", context).click();
-        $(".provision_vms_list_refresh_button", context).click();
+        update_provision_vm_info(vm_id, context);
         button.removeAttr("disabled");
       },
       error: function(request, response){
@@ -4145,6 +4144,7 @@ function setup_provision_templates_list(context, opts) {
             '<li class="provision-description text-right" style="padding-top:5px; margin-right: 5px">'+
               '<i class="fa fa-fw fa-clock-o"/>'+
               _format_date(data.REGTIME)+
+              " " + tr("from VM") + ": " + (data.TEMPLATE.SAVED_TEMPLATE_ID||'-') +
             '</li>'+
             '<li class="provision-title" style="padding-top:10px">'+
               actions_html+
@@ -4425,28 +4425,23 @@ function setup_info_flow(context) {
           case "deploying":
             $(".provision_recover_button", context).hide();
             $(".provision_delete_confirm_button", context).show();
-            $(".provision_shutdown_confirm_button", context).show();
             break;
           case "running":
             $(".provision_recover_button", context).hide();
             $(".provision_delete_confirm_button", context).show();
-            $(".provision_shutdown_confirm_button", context).show();
             break;
           case "off":
-            $(".provision_recover_button", context).hide();
+            $(".provision_recover_button", context).show();
             $(".provision_delete_confirm_button", context).show();
-            $(".provision_shutdown_confirm_button", context).hide();
             break;
           case "powering_off":
           case "error":
             $(".provision_recover_button", context).show();
             $(".provision_delete_confirm_button", context).show();
-            $(".provision_shutdown_confirm_button", context).show();
             break;
           default:
             $(".provision_recover_button", context).show();
             $(".provision_delete_confirm_button", context).show();
-            $(".provision_shutdown_confirm_button", context).show();
             break;
         }
 
@@ -5437,13 +5432,9 @@ function setup_provision_user_info(context) {
       var quotas_str = $(".provision_info_vdc_user", context).attr("quotas");
       if (quotas_str) {
         var quotas = JSON.parse(quotas_str);
-        var rvms_quotas = (quotas.VM.VMS == QUOTA_LIMIT_UNLIMITED ? "" : quotas.VM.VMS)
-        var cpu_quotas = (quotas.VM.CPU == QUOTA_LIMIT_UNLIMITED ? "" : quotas.VM.CPU)
-        var memory_quotas = (quotas.VM.MEMORY == QUOTA_LIMIT_UNLIMITED ? "" : Math.floor(quotas.VM.MEMORY/1024))
-
-        provision_rvms_quota_vdc_info_input.val(rvms_quotas).change();
-        provision_cpu_quota_vdc_info_input.val(cpu_quotas).change();
-        provision_memory_quota_vdc_info_tmp_input.val(memory_quotas).change();
+        provision_rvms_quota_vdc_info_input.val(quotas.VM.VMS).change();
+        provision_cpu_quota_vdc_info_input.val(quotas.VM.CPU).change();
+        provision_memory_quota_vdc_info_tmp_input.val(Math.floor(quotas.VM.MEMORY/1024)).change();
       }
   });
 
@@ -5478,9 +5469,9 @@ function setup_provision_user_info(context) {
         extra_param: {
           "VM" : {
             "VOLATILE_SIZE":"-1",
-            "VMS": $(".provision_rvms_quota_vdc_info_input", context).val()||QUOTA_LIMIT_UNLIMITED,
-            "MEMORY": $(".provision_memory_quota_vdc_info_input", context).val()||QUOTA_LIMIT_UNLIMITED,
-            "CPU": $(".provision_cpu_quota_vdc_info_input", context).val()||QUOTA_LIMIT_UNLIMITED}
+            "VMS": $(".provision_rvms_quota_vdc_info_input", context).val()||0,
+            "MEMORY": $(".provision_memory_quota_vdc_info_input", context).val()||0,
+            "CPU": $(".provision_cpu_quota_vdc_info_input", context).val()||0}
         }
       },
       success: function(request, response){

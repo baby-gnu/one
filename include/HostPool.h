@@ -123,13 +123,10 @@ public:
      *   @param cpu amount of CPU, in percentage
      *   @param mem amount of main memory, in KB
      *   @param disk amount of disk
-     *
-     *   @return 0 on success -1 in case of failure
      */
-    int add_capacity(int oid, int vm_id, int cpu, int mem, int disk)
+    void add_capacity(int oid, int vm_id, int cpu, int mem, int disk)
     {
-        int rc = 0;
-        Host * host = get(oid, true);
+        Host *  host = get(oid, true);
 
         if ( host != 0 )
         {
@@ -139,12 +136,6 @@ public:
 
           host->unlock();
         }
-        else
-        {
-            rc = -1;
-        }
-
-        return rc;
     };
 
     /**

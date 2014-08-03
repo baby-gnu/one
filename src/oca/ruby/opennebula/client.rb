@@ -113,10 +113,8 @@ module OpenNebula
             elsif ENV["ONE_AUTH"] and !ENV["ONE_AUTH"].empty? and
                     File.file?(ENV["ONE_AUTH"])
                 @one_auth = File.read(ENV["ONE_AUTH"])
-            elsif ENV["HOME"] and File.file?(ENV["HOME"]+"/.one/one_auth")
+            elsif File.file?(ENV["HOME"]+"/.one/one_auth")
                 @one_auth = File.read(ENV["HOME"]+"/.one/one_auth")
-            elsif File.file?("/var/lib/one/.one/one_auth")
-                @one_auth = File.read("/var/lib/one/.one/one_auth")
             else
                 raise "ONE_AUTH file not present"
             end
@@ -127,10 +125,8 @@ module OpenNebula
                 @one_endpoint = endpoint
             elsif ENV["ONE_XMLRPC"]
                 @one_endpoint = ENV["ONE_XMLRPC"]
-            elsif ENV['HOME'] and File.exists?(ENV['HOME']+"/.one/one_endpoint")
+            elsif File.exists?(ENV['HOME']+"/.one/one_endpoint")
                 @one_endpoint = File.read(ENV['HOME']+"/.one/one_endpoint")
-            elsif File.exists?("/var/lib/one/.one/one_endpoint")
-                @one_endpoint = File.read("/var/lib/one/.one/one_endpoint")
             else
                 @one_endpoint = "http://localhost:2633/RPC2"
             end
@@ -142,7 +138,6 @@ module OpenNebula
             http_proxy=options[:http_proxy] if options[:http_proxy]
 
             @server = XMLRPC::Client.new2(@one_endpoint, http_proxy, timeout)
-            @server.http_header_extra = {'accept-encoding' => 'identity'}
 
             if defined?(OxStreamParser)
                 @server.set_parser(OxStreamParser.new)
