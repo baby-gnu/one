@@ -2,7 +2,7 @@
 opennebula-node Debian package
 =========================================
 
-'opennebula-common' Debian package contains scripts to create "cloud" group,
+'opennebula-common' Debian package contains scripts to create "oneadmin" group,
 create "oneadmin" account and setup initial ssh key.
 
 'opennebula-node' depends on opennebula-common and also
@@ -17,7 +17,7 @@ correctly working on current machine.
 
 1. Check for hardware support
  * vmx is Intel's VT technology
- * svm is AMD's V technology 
+ * svm is AMD's V technology
 
   root@node01> egrep '(vmx|svm)' /proc/cpuinfo
 
@@ -30,7 +30,7 @@ correctly working on current machine.
   root@node01> virsh -c qemu:///system net-start default
   root@node01> virsh -c qemu:///system net-autostart default
   root@node01> brctl show virbr0
-  
+
 4. Change default user/group running libvirt
 
  You also need to modify /etc/libvirt/qemu.conf to set oneadmin
@@ -41,7 +41,7 @@ correctly working on current machine.
  root@node01> vi /etc/libvirt/qemu.conf
 -------------------
  user = "oneadmin"
- group = "cloud"
+ group = "oneadmin"
  dynamic_ownership = 0
 -------------------
  root@node01> /etc/init.d/libvirt-bin restart
@@ -56,17 +56,17 @@ Add current host into OpenNebula pool
 
   root@controller> su - oneadmin
   oneadmin@controller> cat $HOME/.ssh/id_rsa.pub
-  <COPY YOUR CONTROLLER SSH PUBKEY>
+  <COPY YOUR CONTROLLER SSH PUBLIC KEY>
 
   root@node01> su - oneadmin
   oneadmin@node01> vi $HOME/.ssh/authorized_keys
-  <PAST YOUR CONTROLLER SSH PUBKEY>
+  <PAST YOUR CONTROLLER SSH PUBLIC KEY>
 
-2. Test an connection from controller to current node
+2. Test a connection from controller to current node
 
   root@controller> su - oneadmin
   oneadmin@controller> ssh oneadmin@node01
-    The authenticity of host 'node01 (192.168.0.2)' can't be established. 
+    The authenticity of host 'node01 (192.168.0.2)' can't be established.
     RSA key fingerprint is [xx].
     Are you sure you want to continue connecting (yes/no)? [yes]
     Warning: Permanently added 'node01,192.168.0.2' (RSA) to the list of known hosts.
@@ -81,3 +81,5 @@ Add current host into OpenNebula pool
   oneadmin@controller> onehost list
   ID NAME              CLUSTER  RVM   TCPU   FCPU   ACPU    TMEM    FMEM STAT
    0 node01            default    0    400    388    400    3.9G    2.5G   on
+
+ -- Daniel Dehennin <daniel.dehennin@baby-gnu.org>, Sun,  1 Feb 2015 00:06:43 +0100

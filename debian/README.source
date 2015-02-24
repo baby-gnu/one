@@ -1,12 +1,268 @@
-Import new upstream release
-===========================
+Tracking packaging in dedicated branches
+========================================
 
-Upstream as some JAR files inside its source tarball so we may exclude them
-during import into GIT repository.
+This packaging is based on OpenNebula GIT tree with a merge of
+packaging from Debian and OpenNebula packages[1].
 
-(from inside existing git repository)
-git-import-orig -u1.9.80 --filter "*.jar" \
-		--filter-pristine-tar --pristine-tar \
-                ../one-2.0-beta1.tar.gz
+The packaging use the git-buildpackage[2] helper, the debian/changelog
+is managed by git-dch[3] and the patches are managed by gbp-pq[4].
 
-It's done by debian/orig-tar.sh (called from debian/rules get-orig-source target)
+Here is the theory of managing branches:
+
+- each supported vendor has its own packaging branches under
+  “pkg/<vendor>/” to track their specificities
+
+- each vendor distribution has one “sub-branch” for backporting
+
+- finally, we have one “sub-branch” per OpenNebula version
+
+This result in the following pseudo branches:
+
+- “pkg/<vendor>/master” follows the OpenNebula master branch for the
+  lastest development distribution, for example “pkg/debian/master”
+
+- “pkg/<vendor>/X.Y” follows the OpenNebula branch for version “X.Y”
+  for the lastest development distribution, for example
+  “pkg/debian/4.10”
+
+- “pkg/<vendor>/<dist>/master” follows the OpenNebula master branch
+  for the backport on the distribution “<dist>”, for example
+  “pkg/debian/wheezy/master”
+
+- “pkg/<vendor>/<dist>/X.Y” follows the OpenNebula branch for version
+  “X.Y” for the backport on the distribution “<dist>”, for example
+  “pkg/debian/wheezy/4.10”
+
+As we want to share branches between vendors and distributions as much as
+possible, not all of them will be created.
+
+[1]  http://downloads.opennebula.org/packages/
+[2]  http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/gbp.html
+[3]  http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/man.gbp.dch.html
+[4]  http://honk.sigxcpu.org/projects/git-buildpackage/manual-html/man.gbp.pq.html
+
+
+Debian packaging of OpenNebula master
+-------------------------------------
+
+We create a packaging development branch name “pkg/debian/master”
+which follows OpenNebula “master” branch.
+
+This branch is aimed to be build against Debian unstable distribution.
+
+As OpenNebula support stable Debian distribution, we need to backport
+the packaging to it.
+
+So, we create a new “pkg/debian/<stable>/master” branch based on
+“pkg/debian/master” to track the backport fixes of the packaging, for
+example:
+
+    git branch pkg/debian/wheezy/master pkg/debian/master
+
+
+Ubuntu packaging of OpenNebula master
+-------------------------------------
+
+As Ubuntu is regularly synchronized with Debian unstable, most of the
+time the same package can be used.
+
+If not, we create the “pkg/ubuntu/master” branch to track the Ubuntu
+specificities.
+
+As OpenNebula support stable Ubuntu distributions, we need to backport
+the packaging to them.
+
+So, we create new “pkg/ubuntu/<stable>/master” branches, based on
+“pkg/ubunt/master” if it was previously created or
+“pkg/debian/master”, to track the packaging fixes for Ubuntu, for
+example:
+
+    git branch pkg/ubuntu/precise/master pkg/debian/master
+
+
+Debian packaging of a new OpenNebula X.Y version
+------------------------------------------------
+
+When a new OpenNebula version is released, we create a dedicated
+packaging branch for that version based on “pkg/debian/master”.
+
+We must take care to not include unreleased commits.
+
+It can be done by human eyes, but to automate the process, here is the
+pragmatically way to find the first packaging commit after the common
+ancestor of the “pkg/debian/master” branch and the “release-X.Y”:
+
+1. Find the merge base of master and the packaging branch
+
+    git merge-base release-X.Y pkg/debian/master
+    SHA1
+
+    BASE=$(git merge-base release-X.Y pkg/debian/master)
+
+2. List the commits with their parents, up to ${BASE}, refuse commits
+   reachable from branch master
+
+    git rev-list --parents --first-parent pkg/debian/master ^${BASE} ^master
+    LIST_OF_SHA1_BETWEEN_${BASE}_AND_pkg/debian/master
+
+3. Extract the first one having ${BASE} as parent, keep only the
+   commit SHA1
+
+    COMMIT=$(git rev-list --parents --first-parent pkg/debian/master \
+	^${BASE} \
+	^master \
+	| awk "/${BASE}/ {print \$1}" \
+	| head -n 1 )
+
+4. Create the branch
+
+    git checkout -b pkg/debian/X.Y ${COMMIT}
+    git merge release-X.Y
+
+5. Update the packaging if necessary
+
+6. Update the debian/changelog
+
+7. Build the package
+
+NB: After creating the new branch we make sure to have all the commits
+    in X.Y by merging the release TAG.
+
+
+
+We need to extract a released backport branch for the packaging, based
+on “pkg/debian/wheezy/master”.
+
+It's equivalent of the previous work but between “pkg/debian/X.Y”
+and “pkg/debian/wheezy/master”:
+
+1. Find the merge base of and “pkg/debian/X.Y” and
+   “pkg/debian/wheezy/master”
+
+    git merge-base pkg/debian/X.Y pkg/debian/wheezy/master
+    SHA1
+
+    BASE=$(git merge-base pkg/debian/X.Y pkg/debian/wheezy/master)
+
+2. List the commits with their parents, refuse commits reachable from
+   branch pkg/debian/X.Y
+
+    git rev-list --parents --first-parent pkg/debian/wheezy/master \
+        ^${BASE} ^pkg/debian/X.Y
+    LIST_OF_SHA1_BETWEEN_${BASE}_AND_pkg/debian/wheezy/master
+
+3. Extract the first one having ${BASE} as parent, keep only the
+   commit SHA1
+
+    COMMIT=$(git rev-list --parents --first-parent pkg/debian/wheezy/master \
+        ^${BASE} \
+	^pkg/debian/X.Y \
+	| awk "/${BASE}/ {print \$1}" \
+	| head -n 1 )
+
+4. Create the branch
+
+    git checkout -b pkg/debian/wheezy/X.Y ${COMMIT}
+    git merge release-X.Y
+
+5. Update the packaging if necessary
+
+6. Update the debian/changelog
+
+7. Build the package
+
+NB: After creating the new branch we make sure to have all the commits
+    in X.Y by merging the release TAG.
+
+Ubuntu packaging of a new OpenNebula X.Y version
+------------------------------------------------
+
+The work is the same as for Debian but between the Debian branches and
+the Ubuntu ones:
+
+1. Find the merge-base of the two branches
+
+2. Find the first commit on the current branch for which its parent is
+   the merge-base
+
+3. Create a new packaging branch for the version based on the commit
+   found at step 2.
+
+
+Packaging of fixup release X.Y.Z
+--------------------------------
+
+When OpenNebula release a new fixup release, for each X.Y packaging
+branch, we only need to:
+
+1. merge the new “release-X.Y.Z” tag:
+
+    git checkout pkg/debian/X.Y
+    git merge release-X.Y.Z
+
+    git checkout pkg/debian/wheezy/X.Y
+    git merge release-X.Y.Z
+
+    git checkout pkg/ubuntu/trusty/X.Y
+    git merge release-X.Y.Z
+
+    git checkout pkg/ubuntu/precise/X.Y
+    git merge release-X.Y.Z
+
+2. Update the packaging if necessary
+
+3. Update the debian/changelog file
+
+4. Build the package
+
+
+Package version numbering
+-------------------------
+
+The version numbers must be coherent between distribution, when
+upgrading from Wheezy to Jessie, even if the OpenNebula version is the
+same, the package need to be upgraded for new dependencies.
+
+So, package version for older distribution must be lower than version
+for new distributions:
+
+- pkg/debian/master is for Debian Sid
+
+	Debian Version = upstream-tag + build number
+	for example: 4.11.80-2
+
+- pkg/debian/wheezy/master is for Debian Wheezy, as we need changes
+  between branches, this is a backport, then
+
+	Debian Version = upstream-tag + '~bpo70+' + build number
+	for example: 4.11.80-2~bpo70+1
+
+- pkg/debian/jessie/master is for Debian Jessie, if we need changes
+  compared to Sid, we need a backport, then
+
+	Debian Version = upstream-tag + '~bpo80+' + build number
+	for example: 4.11.80-2~bpo80+1
+
+- pkg/ubuntu/master is for Ubuntu developpement distribution, if we
+  need changes compared to Sid, we use the Ubuntu version scheme[5]
+
+	Debian Version = upstream-tag + debian-packaging-number + 'ubuntu' + build number
+	for example: 4.11.80-2ubuntu1
+
+- pkg/ubuntu/trusty/master is for Ubuntu Trusty Tahr distribution, if
+  we need changes compared to Sid or Ubuntu, we use the Ubuntu version scheme[5]
+
+	Debian Version = upstream-tag + debian-packaging-number + '~ubuntu' + '14.04.' + build number
+	for example: 4.11.80-2~ubuntu14.04.1
+
+- pkg/ubuntu/precise/master is for Ubuntu Precise Pangolin
+  distribution, as we need changes compared to Sid or Ubuntu or
+  Trusty, we use the Ubuntu version scheme[5]
+
+	Debian Version = upstream-tag + debian-packaging-number + '~ubuntu' + '12.04.' + build number
+	for example: 4.11.80-2~ubuntu12.04.1
+
+
+[5]  http://www.justgohome.co.uk/blog/2015/01/ubuntu-package-versions.html
+
+ -- Daniel Dehennin <daniel.dehennin@baby-gnu.org>, Sun, 22 Feb 2015 13:40:38 +0100
