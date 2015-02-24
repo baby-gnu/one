@@ -11,15 +11,6 @@ include /usr/share/dpkg/default.mk
 # see FEATURE AREAS in dpkg-buildflags(1)
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-# Handle group assignment: libvirt (Debian) and libvirtd (Ubuntu)
-ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes),yes)
-	LIB_VIRT_GROUP = libvirtd
-	DEB_VENDOR = Ubuntu
-else
-	LIB_VIRT_GROUP = libvirt
-	DEB_VENDOR = Debian
-endif
-
 %:
 	dh $@ --with javahelper --with bash-completion
 
@@ -32,9 +23,9 @@ override_dh_auto_install:
 	DESTDIR=debian/tmp ./install.sh
 	dh_auto_install
 
-	# Distro specific sudoers
+	# Install sudoers
 	mkdir -p debian/tmp/etc/sudoers.d
-	cp share/pkgs/${DEB_VENDOR}/opennebula.sudoers debian/tmp/etc/sudoers.d/opennebula
+	cp share/pkgs/Debian/opennebula.sudoers debian/tmp/etc/sudoers.d/opennebula
 	chmod 0440 debian/tmp/etc/sudoers.d/opennebula
 
 override_dh_auto_clean:
@@ -49,7 +40,6 @@ override_dh_auto_clean:
 		src/scheduler/.xmlrpc_test/xmlrpc_test.* \
 		src/scheduler/src/sched/.xmlrpc_test \
 		.xmlrpc_test
-	-rm -Rf debian/opennebula-node.postinst
 
 override_dh_install:
 	dh_install
@@ -58,12 +48,6 @@ override_dh_installinit:
 	dh_installinit -popennebula-sunstone --name opennebula-econe
 	dh_installinit -popennebula-sunstone --name opennebula-novnc
 	dh_installinit
-
-override_dh_installdeb:
-ifneq (,$(filter opennebula-node, $(shell dh_listpackages)))
-	sed "s/@LIBVIRTGRP@/${LIB_VIRT_GROUP}/g" debian/opennebula-node.postinst.in > debian/opennebula-node.postinst
-endif
-	dh_installdeb
 
 override_dh_strip:
 	dh_strip --dbg-package=opennebula-dbg

@@ -22,6 +22,14 @@ ONE_GROUP=oneadmin
 ONE_USER=oneadmin
 QEMU_CONF=/etc/libvirt/qemu.conf
 
+# Handle group assignment: libvirt (Debian) and libvirtd (Ubuntu)
+if getent group libvirtd > /dev/null
+then
+    LIB_VIRT_GROUP=libvirtd
+else
+    LIB_VIRT_GROUP=libvirt
+fi
+
 is_in_group() {
     getent group ${2} > /dev/null \
       && id --name --groups ${1} | grep -q "\b${2}\b" > /dev/null
@@ -34,8 +42,8 @@ set_qemu_option() {
 case "$1" in
     configure)
         # Add oneadmin user into @LIBVIRTGRP@ group
-        if ! is_in_group $ONE_USER @LIBVIRTGRP@; then
-            adduser $ONE_USER @LIBVIRTGRP@
+        if ! is_in_group $ONE_USER ${LIB_VIRT_GROUP}; then
+            adduser $ONE_USER ${LIB_VIRT_GROUP}
         fi
 
         # Add oneadmin user into kvm group
