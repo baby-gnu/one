@@ -1,0 +1,26 @@
+From: Daniel Dehennin <daniel.dehennin@baby-gnu.org>
+Date: Tue, 3 Feb 2015 07:56:32 +0100
+Subject: Use qemu-system-x86_64 binary
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Since qemu version 1.7.0, the binaries are named “qemu-system-<arch>” and
+placed in “/usr/bin/”.
+---
+ src/vmm_mad/exec/vmm_exec_kvm.conf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vmm_mad/exec/vmm_exec_kvm.conf b/src/vmm_mad/exec/vmm_exec_kvm.conf
+index 97f3f21..f5da7cd 100644
+--- a/src/vmm_mad/exec/vmm_exec_kvm.conf
++++ b/src/vmm_mad/exec/vmm_exec_kvm.conf
+@@ -27,7 +27,7 @@
+ #  - hyperv_options: options used for FEATURES = [ HYPERV = yes ]
+ # NOTE: raw attribute value is appended to that on the VM template
+ 
+-#EMULATOR = /usr/libexec/qemu-kvm
++EMULATOR = /usr/bin/qemu-system-x86_64
+ 
+ #VCPU = 1
+ 
