@@ -1,35 +1,36 @@
 Source: opennebula
 Section: utils
 Priority: extra
-Maintainer: Debian OpenNebula Maintainers <pkg-opennebula-devel@lists.alioth.debian.org>
-Uploaders: Damien Raude-Morvan <drazzib@debian.org>,
-           Soren Hansen <soren@ubuntu.com>,
-           Jaime Melis <jmelis@opennebula.org>
+Maintainer: Daniel Dehennin <daniel.dehennin@baby-gnu.org>
+XS-Original-Maintainer: Debian OpenNebula Maintainers <pkg-opennebula-devel@lists.alioth.debian.org>
+XS-Original-Uploaders: Damien Raude-Morvan <drazzib@debian.org>,
+                       Soren Hansen <soren@ubuntu.com>,
+                       Jaime Melis <jmelis@opennebula.org>
 Build-Depends: bash-completion,
                bison,
-               debhelper (>= 7.0.50~),
+               debhelper (>= 9),
                default-jdk,
                flex,
                javahelper (>= 0.32),
+               libicu-dev,
                libmysql++-dev,
                liblog4cpp5-dev,
                libsqlite3-dev,
                libssl-dev,
                libws-commons-util-java,
                libxml2-dev,
-               libxmlrpc-c3-dev,
+               libxmlrpc-c++8-dev,
                libxmlrpc3-client-java,
                libxmlrpc3-common-java,
                libxslt1-dev,
                ruby,
                scons
-Replaces: opennebula-ozones
-Conflicts: opennebula-ozones
-Breaks: opennebula-ozones
-Standards-Version: 3.9.3
+Standards-Version: 3.9.6.1
 Homepage: http://opennebula.org/
-Vcs-Git: git://git.debian.org/pkg-opennebula/opennebula.git
-Vcs-Browser: http://git.debian.org/?p=pkg-opennebula/opennebula.git
+Vcs-Git: https://github.com/OpenNebula/one.git
+Vcs-Browser: https://github.com/OpenNebula/one
+XS-Original-Vcs-Git: git://anonscm.debian.org/pkg-opennebula/opennebula.git
+XS-Original-Vcs-Browser: http://anonscm.debian.org/cgit/pkg-opennebula/opennebula.git
 
 Package: opennebula
 Architecture: any
@@ -45,7 +46,11 @@ Depends: apg,
          liblog4cpp5,
          ${misc:Depends},
          ${shlibs:Depends}
-Suggests: mysql-server
+Suggests: mysql-server,
+          opennebula-dbg
+Replaces: opennebula-ozones
+Conflicts: opennebula-ozones
+Breaks: opennebula-ozones
 Description: controller which executes the OpenNebula cluster services
  OpenNebula is an open source virtual infrastructure engine that enables the
  dynamic deployment and re-placement of virtual machines on a pool of physical
@@ -58,11 +63,27 @@ Description: controller which executes the OpenNebula cluster services
  This package contains OpenNebula Controller which manage all nodes in the
  cloud.
 
+Package: opennebula-dbg
+Section: debug
+Architecture: any
+Depends: opennebula (= ${binary:Version}),
+         ${misc:Depends}
+Description: OpenNebula cluster controller (debug)
+ OpenNebula is an open source virtual infrastructure engine that enables the
+ dynamic deployment and re-placement of virtual machines on a pool of physical
+ resources.
+ .
+ ONE (OpenNebula) extends the benefits of virtualization platforms from a
+ single physical resource to a pool of resources, decoupling the server not
+ only from the physical infrastructure but also from the physical location.
+ .
+ This package contains the debugging symbols.
+
 Package: opennebula-sunstone
 Architecture: all
-Depends: opennebula-common (= ${source:Version}),
-         ruby-opennebula (= ${source:Version}),
-         opennebula-tools (= ${source:Version}),
+Depends: opennebula-common (= ${binary:Version}),
+         ruby-opennebula (= ${binary:Version}),
+         opennebula-tools (= ${binary:Version}),
          thin,
          ruby-json,
          ruby-sinatra,
@@ -86,15 +107,17 @@ Description: web interface to which executes the OpenNebula cluster services
 
 Package: opennebula-gate
 Architecture: all
-Depends: opennebula-common (= ${source:Version}),
+Depends: opennebula-common (= ${binary:Version}),
          ruby-json,
-         ruby-opennebula (= ${source:Version}),
+         ruby-opennebula (= ${binary:Version}),
          ruby-sinatra,
          ruby-rack,
          thin,
          ${misc:Depends}
-Conflicts: opennebula (<< ${source:Version})
-Description: send information to OpenNebula from the Virtual Machines.
+Description: send information to OpenNebula from the Virtual Machines
+ OpenNebula is an open source virtual infrastructure engine that enables the
+ dynamic deployment and re-placement of virtual machines on a pool of physical
+ resources.
  .
  ONE (OpenNebula) extends the benefits of virtualization platforms from a
  single physical resource to a pool of resources, decoupling the server not
@@ -105,15 +128,18 @@ Description: send information to OpenNebula from the Virtual Machines.
 
 Package: opennebula-flow
 Architecture: all
-Depends: opennebula-common (= ${source:Version}),
+Depends: opennebula-common (= ${binary:Version}),
          ruby-json,
-         ruby-opennebula (= ${source:Version}),
+         ruby-opennebula (= ${binary:Version}),
          ruby-sinatra,
          thin,
          curl,
          ruby-treetop,
          ${misc:Depends}
-Description: Manage services.
+Description: Manage services
+ OpenNebula is an open source virtual infrastructure engine that enables the
+ dynamic deployment and re-placement of virtual machines on a pool of physical
+ resources.
  .
  ONE (OpenNebula) extends the benefits of virtualization platforms from a
  single physical resource to a pool of resources, decoupling the server not
@@ -143,7 +169,7 @@ Architecture: all
 Depends: adduser,
          libvirt-bin,
          qemu-kvm,
-         opennebula-common (= ${source:Version}),
+         opennebula-common (= ${binary:Version}),
          ruby,
          vlan,
          ${misc:Depends}
@@ -170,7 +196,6 @@ Depends: ruby,
          ruby-sqlite3,
          ruby-nokogiri,
          ruby-builder,
-         rubygems,
          ${misc:Depends},
          ${ruby:Depends}
 Description: Ruby bindings for OpenNebula Cloud API (OCA)
@@ -186,8 +211,8 @@ Description: Ruby bindings for OpenNebula Cloud API (OCA)
 
 Package: opennebula-tools
 Architecture: all
-Depends: opennebula-common (= ${source:Version}),
-         ruby-opennebula (= ${source:Version}),
+Depends: opennebula-common (= ${binary:Version}),
+         ruby-opennebula (= ${binary:Version}),
          ${misc:Depends},
          ${ruby:Depends}
 Description: Command-line tools for OpenNebula Cloud
