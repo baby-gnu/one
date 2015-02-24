@@ -1,26 +1,30 @@
-dist/etc/one/cli/*  /etc/one/cli/
+etc/one/cli/
 
-dist/usr/lib/one/ruby/cli/*                          /usr/lib/one/ruby/cli/
-dist/usr/lib/one/ruby/cloud/econe/EC2QueryClient.rb  /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/CloudClient.rb           /usr/lib/one/ruby/cloud/
+usr/lib/one/ruby/cli/
+usr/lib/one/ruby/cloud/econe/EC2QueryClient.rb
+usr/lib/one/ruby/cloud/CloudClient.rb
 
-dist/usr/share/one/install_gems                      /usr/share/one/
+usr/share/one/install_gems
 
-dist/usr/bin/oneacl        /usr/bin/
-dist/usr/bin/onecluster    /usr/bin/
-dist/usr/bin/onedatastore  /usr/bin/
-dist/usr/bin/onegroup      /usr/bin/
-dist/usr/bin/onehost       /usr/bin/
-dist/usr/bin/oneimage      /usr/bin/
-dist/usr/bin/onemarket     /usr/bin/
-dist/usr/bin/onetemplate   /usr/bin/
-dist/usr/bin/oneuser       /usr/bin/
-dist/usr/bin/onevm         /usr/bin/
-dist/usr/bin/onevnet       /usr/bin/
-dist/usr/bin/oneacct       /usr/bin/
-dist/usr/bin/onezone       /usr/bin/
-dist/usr/bin/onevcenter    /usr/bin/
+usr/bin/oneacl
+usr/bin/onecluster
+usr/bin/onedatastore
+usr/bin/onegroup
+usr/bin/onehost
+usr/bin/oneimage
+usr/bin/onemarket
+usr/bin/onesecgroup
+usr/bin/oneshowback
+usr/bin/onetemplate
+usr/bin/oneuser
+usr/bin/onevcenter
+usr/bin/onevdc
+usr/bin/onevm
+usr/bin/onevnet
+usr/bin/oneacct
+usr/bin/onezone
+usr/bin/onevcenter
 
-dist/usr/bin/oneflow             /usr/bin/
-dist/usr/bin/oneflow-template    /usr/bin/
+usr/bin/oneflow
+usr/bin/oneflow-template
 

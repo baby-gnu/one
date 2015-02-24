@@ -1,81 +1,75 @@
 # Common to Sunstone, OCCI and ECONE
-
-dist/usr/lib/one/ruby/OpenNebulaVNC.rb                  /usr/lib/one/ruby/
-
-dist/usr/bin/novnc-server /usr/bin/
+usr/lib/one/ruby/OpenNebulaVNC.rb
+usr/bin/novnc-server
 
 # Sunstone
+usr/lib/one/sunstone/config.ru
+etc/one/sunstone-server.conf
+etc/one/sunstone-views.yaml
+etc/one/sunstone-views
 
-dist/usr/lib/one/sunstone/config.ru /usr/lib/one/sunstone/
+usr/lib/one/sunstone/*.rb
+usr/lib/one/sunstone/models/Sunstone*
+usr/lib/one/sunstone/views/
+usr/lib/one/sunstone/public/css/
+usr/lib/one/sunstone/public/js/
+usr/lib/one/sunstone/public/images/
+usr/lib/one/sunstone/public/locale/
+usr/lib/one/sunstone/routes/
 
-dist/etc/one/sunstone-server.conf  /etc/one/
+usr/bin/sunstone-server
 
-dist/etc/one/sunstone-views.yaml   /etc/one/
-dist/etc/one/sunstone-views/*      /etc/one/sunstone-views/
+usr/lib/one/ruby/cloud/CloudAuth/SunstoneCloudAuth.rb
+usr/lib/one/ruby/cloud/marketplace/marketplace_client.rb
 
-dist/usr/lib/one/sunstone/*.rb               /usr/lib/one/sunstone/
-dist/usr/lib/one/sunstone/models/Sunstone*   /usr/lib/one/sunstone/models/
-dist/usr/lib/one/sunstone/views/*            /usr/lib/one/sunstone/views/
-dist/usr/lib/one/sunstone/public/css/*       /usr/lib/one/sunstone/public/css/
-dist/usr/lib/one/sunstone/public/js/*        /usr/lib/one/sunstone/public/js/
-dist/usr/lib/one/sunstone/public/images/*    /usr/lib/one/sunstone/public/images/
-dist/usr/lib/one/sunstone/public/locale/*    /usr/lib/one/sunstone/public/locale/
+usr/lib/one/sunstone/public/vendor/crypto-js/
+usr/lib/one/sunstone/public/vendor/noVNC/
+usr/lib/one/sunstone/public/vendor/spice/
 
-dist/usr/lib/one/sunstone/routes/* /usr/lib/one/sunstone/routes/
+usr/lib/one/sunstone/public/vendor/4.0/
 
-dist/usr/bin/sunstone-server    /usr/bin/
-
-dist/usr/lib/one/ruby/cloud/CloudAuth/SunstoneCloudAuth.rb  /usr/lib/one/ruby/cloud/CloudAuth/
-dist/usr/lib/one/ruby/cloud/marketplace/marketplace_client.rb   /usr/lib/one/ruby/cloud/marketplace
-
-dist/usr/lib/one/sunstone/public/vendor/crypto-js/*         /usr/lib/one/sunstone/public/vendor/crypto-js
-dist/usr/lib/one/sunstone/public/vendor/noVNC/*             /usr/lib/one/sunstone/public/vendor/noVNC
-
-dist/usr/lib/one/sunstone/public/vendor/4.0/* /usr/lib/one/sunstone/public/vendor/4.0/
-
-dist/usr/share/one/websockify/* /usr/share/one/websockify/
+usr/share/one/websockify/
 
 # ECONE
+etc/one/econe.conf
 
-dist/etc/one/econe.conf          /etc/one/
+etc/one/ec2query_templates/
 
-dist/etc/one/ec2query_templates/*  /etc/one/ec2query_templates/
+usr/bin/econe-server
 
-dist/usr/bin/econe-server  /usr/bin/
+usr/lib/one/ruby/cloud/CloudAuth/EC2CloudAuth.rb
 
-dist/usr/lib/one/ruby/cloud/CloudAuth/EC2CloudAuth.rb         /usr/lib/one/ruby/cloud/CloudAuth/
+usr/lib/one/ruby/cloud/econe/econe-server.rb
+usr/lib/one/ruby/cloud/econe/econe_application.rb
+usr/lib/one/ruby/cloud/econe/elastic_ip.rb
+usr/lib/one/ruby/cloud/econe/ImageEC2.rb
+usr/lib/one/ruby/cloud/econe/EC2QueryServer.rb
+usr/lib/one/ruby/cloud/econe/ebs.rb
+usr/lib/one/ruby/cloud/econe/instance.rb
+usr/lib/one/ruby/cloud/econe/keypair.rb
+usr/lib/one/ruby/cloud/econe/net_ssh_replacement.rb
+usr/lib/one/ruby/cloud/econe/tags.rb
+usr/lib/one/ruby/cloud/econe/views/
 
-dist/usr/lib/one/ruby/cloud/econe/econe-server.rb         /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/econe_application.rb    /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/elastic_ip.rb           /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/ImageEC2.rb             /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/EC2QueryServer.rb       /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/ebs.rb                  /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/instance.rb             /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/keypair.rb              /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/net_ssh_replacement.rb  /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/tags.rb                 /usr/lib/one/ruby/cloud/econe/
-dist/usr/lib/one/ruby/cloud/econe/views/*                 /usr/lib/one/ruby/cloud/econe/views/
-
-dist/usr/bin/econe-allocate-address      /usr/bin/
-dist/usr/bin/econe-associate-address     /usr/bin/
-dist/usr/bin/econe-describe-addresses    /usr/bin/
-dist/usr/bin/econe-describe-images       /usr/bin/
-dist/usr/bin/econe-describe-instances    /usr/bin/
-dist/usr/bin/econe-disassociate-address  /usr/bin/
-dist/usr/bin/econe-register              /usr/bin/
-dist/usr/bin/econe-release-address       /usr/bin/
-dist/usr/bin/econe-run-instances         /usr/bin/
-dist/usr/bin/econe-terminate-instances   /usr/bin/
-dist/usr/bin/econe-upload                /usr/bin/
-dist/usr/bin/econe-attach-volume         /usr/bin/
-dist/usr/bin/econe-create-volume         /usr/bin/
-dist/usr/bin/econe-delete-volume         /usr/bin/
-dist/usr/bin/econe-describe-volumes      /usr/bin/
-dist/usr/bin/econe-detach-volume         /usr/bin/
-dist/usr/bin/econe-reboot-instances      /usr/bin/
-dist/usr/bin/econe-start-instances       /usr/bin/
-dist/usr/bin/econe-stop-instances        /usr/bin/
-dist/usr/bin/econe-create-keypair        /usr/bin/
-dist/usr/bin/econe-delete-keypair        /usr/bin/
-dist/usr/bin/econe-describe-keypairs     /usr/bin/
+usr/bin/econe-allocate-address
+usr/bin/econe-associate-address
+usr/bin/econe-describe-addresses
+usr/bin/econe-describe-images
+usr/bin/econe-describe-instances
+usr/bin/econe-disassociate-address
+usr/bin/econe-register
+usr/bin/econe-release-address
+usr/bin/econe-run-instances
+usr/bin/econe-terminate-instances
+usr/bin/econe-upload
+usr/bin/econe-attach-volume
+usr/bin/econe-create-volume
+usr/bin/econe-delete-volume
+usr/bin/econe-describe-volumes
+usr/bin/econe-detach-volume
+usr/bin/econe-reboot-instances
+usr/bin/econe-start-instances
+usr/bin/econe-stop-instances
+usr/bin/econe-create-keypair
+usr/bin/econe-delete-keypair
+usr/bin/econe-describe-keypairs
