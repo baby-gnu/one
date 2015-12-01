@@ -75,8 +75,9 @@ class OpenvSwitchVLAN < VNMMAD::VNMDriver
         process do |nic|
             @nic = nic
 
-            # Remove flows
-            del_flows
+            # Remove flows on the nic port if it exists
+            in_port = port
+            del_flow "in_port=#{in_port},dl_src=#{@nic[:mac]}" if not in_port.nil?
         end
 
         unlock
@@ -156,22 +157,6 @@ class OpenvSwitchVLAN < VNMMAD::VNMDriver
         end
     end
 
-    def del_flows
-        in_port = ""
-
-        dump_flows = "#{command(:ovs_ofctl)} dump-flows #{@nic[:bridge]}"
-        `#{dump_flows}`.lines do |flow|
-            next unless flow.match("#{@nic[:mac]}")
-            flow = flow.split.select{|e| e.match(@nic[:mac])}.first
-            if in_port.empty? and (m = flow.match(/in_port=(\d+)/))
-                in_port = m[1]
-            end
-            del_flow flow
-        end
-
-        del_flow "in_port=#{in_port}" if !in_port.empty?
-    end
-
     def add_flow(filter,action,priority=nil)
         priority = (priority.to_s.empty? ? "" : "priority=#{priority},")
 
@@ -194,6 +179,9 @@ class OpenvSwitchVLAN < VNMMAD::VNMDriver
 
         dump_ports = `#{command(:ovs_ofctl)} \
                       dump-ports #{@nic[:bridge]} #{@nic[:tap]}`
+
+        # Do not return 1 if no port is associated with the interface
+        return nil if dump_ports.empty?
 
         @nic[:port] = dump_ports.scan(/^\s*port\s*(\d+):/).flatten.first
     end
